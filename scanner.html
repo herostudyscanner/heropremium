@@ -2,732 +2,1054 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShartnomAI — AI Shartnoma Tahlilchi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HERO SCANNER PRO</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#080b12;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
-  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
-  --text:#f0f2f8;--text2:#8892a4;--text3:#4a5568;
-  --accent:#6366f1;--accent2:#818cf8;--accent3:#4f46e5;
-  --glow:rgba(99,102,241,.15);--glow2:rgba(99,102,241,.3);
-  --green:#10b981;--green-bg:rgba(16,185,129,.1);--green-br:rgba(16,185,129,.25);
-  --yellow:#f59e0b;--yellow-bg:rgba(245,158,11,.1);--yellow-br:rgba(245,158,11,.25);
-  --red:#ef4444;--red-bg:rgba(239,68,68,.1);--red-br:rgba(239,68,68,.25);
-  --r:14px;--rsm:10px;--rlg:20px;
+:root {
+  --bg:       #040d1a;
+  --bg2:      #071828;
+  --card:     rgba(0,255,136,.04);
+  --g:        #00ff88;
+  --c:        #00d4ff;
+  --r:        #ff3355;
+  --y:        #ffd600;
+  --txt:      #d8f0f8;
+  --mute:     #3a8fa8;
+  --border:   rgba(0,255,136,.18);
+  --borderHi: rgba(0,255,136,.55);
+  --glow:     0 0 22px rgba(0,255,136,.28);
+  --glowStr:  0 0 45px rgba(0,255,136,.5);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;overflow-x:hidden}
-#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
-.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
-.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);top:-200px;left:-100px;animation:orbF 12s ease-in-out infinite}
-.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%);bottom:-150px;right:-100px;animation:orbF 15s ease-in-out infinite reverse}
-@keyframes orbF{0%,100%{transform:translateY(0)}50%{transform:translateY(-40px)}}
-header{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(8,11,18,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
-.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none}
-.logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 20px var(--glow2)}
-.hright{display:flex;align-items:center;gap:10px}
-.badge-live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--green);background:var(--green-bg);border:1px solid var(--green-br);padding:4px 10px;border-radius:20px}
-.badge-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:lp 1.5s infinite}
-@keyframes lp{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}50%{box-shadow:0 0 0 4px rgba(16,185,129,0)}}
-.hbtn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:var(--accent2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;text-decoration:none}
-.hbtn:hover{background:rgba(99,102,241,.2)}
-.wrap{position:relative;z-index:10;max-width:800px;margin:0 auto;padding:100px 1.5rem 4rem}
-.hero{text-align:center;padding:3rem 0 2rem;animation:fadeUp .8s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);padding:5px 14px;border-radius:20px;margin-bottom:1.5rem}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:1.2rem;letter-spacing:-.02em}
-.grad{background:linear-gradient(135deg,#818cf8,#c084fc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gs 4s ease-in-out infinite alternate}
-@keyframes gs{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(30deg)}}
-.hero p{font-size:16px;color:var(--text2);max-width:500px;margin:0 auto 2rem;line-height:1.7}
-.hstats{display:flex;justify-content:center;margin-bottom:2rem;flex-wrap:wrap;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.hs{text-align:center;padding:.9rem 1.5rem;border-right:1px solid var(--border);flex:1}
-.hs:last-child{border-right:none}
-.hs strong{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;color:var(--text);display:block;line-height:1}
-.hs span{font-size:11px;color:var(--text3);margin-top:4px;display:block}
-.features-strip{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;background:var(--bg2)}
-.feat{flex:1;padding:.9rem .7rem;text-align:center;border-right:1px solid var(--border);transition:background .2s}
-.feat:last-child{border-right:none}
-.feat:hover{background:rgba(99,102,241,.05)}
-.feat-ico{font-size:1.2rem;margin-bottom:4px;display:block}
-.feat-t{font-size:11px;font-weight:600;color:var(--text);display:block;font-family:'Syne',sans-serif}
-.feat-s{font-size:10px;color:var(--text3)}
-@media(max-width:560px){.features-strip{flex-wrap:wrap}.feat{min-width:50%}.hstats{flex-wrap:wrap}.hs{min-width:50%}}
-.demo-banner{background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.08));border:1px solid rgba(99,102,241,.2);border-radius:var(--rsm);padding:10px 16px;font-size:13px;color:var(--text2);margin-bottom:1.2rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.demo-count{font-weight:700;color:var(--accent2)}
-.token-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem 1.4rem;margin-bottom:1.2rem;display:none;animation:fadeUp .3s ease}
-.token-section h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;font-family:'Syne',sans-serif}
-.token-row{display:flex;gap:8px}
-.token-in{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--bg);font-family:'Inter',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.04em}
-.token-in:focus{border-color:rgba(99,102,241,.4)}
-.token-in::placeholder{color:var(--text3);letter-spacing:0}
-.token-submit{padding:9px 16px;background:var(--accent);color:white;border:none;border-radius:var(--rsm);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
-.token-hint{font-size:11px;color:var(--text3);margin-top:7px}
-.token-hint a{color:var(--accent2)}
-.tok-ok{display:none;margin-top:8px;padding:8px 12px;background:var(--green-bg);border:1px solid var(--green-br);border-radius:var(--rsm);font-size:12px;color:var(--green);align-items:center;gap:6px}
-.tok-err{display:none;margin-top:8px;padding:8px 12px;background:var(--red-bg);border:1px solid var(--red-br);border-radius:var(--rsm);font-size:12px;color:var(--red)}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;transition:border-color .3s}
-.card:hover{border-color:var(--border2)}
-.lang-row{display:flex;gap:6px;padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);background:var(--bg3);align-items:center;flex-wrap:wrap}
-.lang-label{font-size:12px;color:var(--text3);margin-right:4px;font-weight:500}
-.lang-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s}
-.lang-btn:hover{border-color:var(--border2);color:var(--text)}
-.lang-btn.active{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 0 16px var(--glow2)}
-.upload-zone{margin:1.4rem;border:1.5px dashed rgba(99,102,241,.25);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .25s;background:rgba(99,102,241,.03);position:relative}
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(99,102,241,.07);transform:scale(1.005)}
-.upload-zone.has-file{border-style:solid;border-color:var(--green);background:var(--green-bg);transform:none}
-.upload-input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.upload-ico{width:56px;height:56px;margin:0 auto 1rem;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .2s}
-.upload-zone:hover .upload-ico{transform:scale(1.1) rotate(3deg)}
-.upload-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px;font-family:'Syne',sans-serif}
-.upload-sub{font-size:13px;color:var(--text3)}
-.file-info{display:flex;align-items:center;gap:12px;text-align:left}
-.file-ico-wrap{width:46px;height:46px;background:var(--green-bg);border:1px solid var(--green-br);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.file-name{font-weight:600;color:var(--green);font-size:14px}
-.file-size{font-size:12px;color:var(--text3);margin-top:2px}
-.file-change{font-size:12px;color:var(--accent2);cursor:pointer;margin-left:auto;text-decoration:underline}
-.or-div{display:flex;align-items:center;gap:12px;padding:0 1.4rem;margin:-.2rem 0;font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
-.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--border)}
-.paste-area{display:block;width:calc(100% - 2.8rem);margin:1rem 1.4rem;min-height:110px;padding:14px;border:1px solid var(--border);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:rgba(255,255,255,.02);resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;line-height:1.6}
-.paste-area:focus{border-color:rgba(99,102,241,.4);box-shadow:0 0 0 3px var(--glow)}
-.paste-area::placeholder{color:var(--text3)}
-.char-count{font-size:11px;color:var(--text3);text-align:right;padding:0 1.4rem .4rem}
-.analyze-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 2.8rem);margin:.6rem 1.4rem 1.4rem;padding:15px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;letter-spacing:.02em;box-shadow:0 4px 24px rgba(99,102,241,.35);position:relative;overflow:hidden}
-.analyze-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .2s}
-.analyze-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.5)}
-.analyze-btn:hover::before{opacity:1}
-.analyze-btn:disabled{background:linear-gradient(135deg,#2a2f3d,#1e2433);color:var(--text3);cursor:not-allowed;box-shadow:none;transform:none}
-.btn-shine{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shine 3s ease-in-out infinite 1s}
-@keyframes shine{0%{left:-100%}40%,100%{left:150%}}
-.error-box{margin:0 1.4rem .8rem;padding:12px 16px;background:var(--red-bg);border:1px solid var(--red-br);border-radius:var(--rsm);font-size:13px;color:var(--red);display:none;line-height:1.6;animation:fadeUp .3s ease}
-.error-box.show{display:block}
-.loading-state{padding:4rem 1.4rem;text-align:center;display:none}
-.loading-state.show{display:block}
-.ai-loader{width:80px;height:80px;margin:0 auto 2rem;position:relative}
-.alr{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
-.alr:nth-child(1){border-top-color:var(--accent);animation:spin 1.2s linear infinite}
-.alr:nth-child(2){inset:8px;border-right-color:var(--accent2);animation:spin .9s linear infinite reverse}
-.alr:nth-child(3){inset:16px;border-bottom-color:#c084fc;animation:spin .7s linear infinite}
-.alr-core{position:absolute;inset:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));animation:cp 1.5s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes cp{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.1);opacity:1}}
-.loading-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
-.loading-sub{font-size:13px;color:var(--text3);margin-bottom:2rem}
-.load-steps{display:flex;flex-direction:column;gap:8px;max-width:280px;margin:0 auto;text-align:left}
-.ls{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text3);padding:6px 10px;border-radius:8px;transition:all .3s}
-.ls.active{color:var(--accent2);background:rgba(99,102,241,.08)}
-.ls.done{color:var(--green)}
-.ls-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:all .3s}
-.ls.done .ls-dot{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5)}
-.ls.active .ls-dot{background:var(--accent);animation:lp 1s infinite}
-.results{display:none}
-.results.show{display:block;animation:fadeUp .5s ease}
-.verdict-card{border-radius:var(--rlg);padding:1.8rem;margin-bottom:1.5rem;border:1px solid;position:relative;overflow:hidden}
-.verdict-card::before{content:'';position:absolute;inset:0;opacity:.05;background:radial-gradient(circle at 0% 0%,white,transparent 60%)}
-.vs{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));border-color:var(--green-br)}
-.vc{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border-color:var(--yellow-br)}
-.vr{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.06));border-color:var(--red-br)}
-.vtop{display:flex;align-items:flex-start;gap:1rem}
-.vico{font-size:2.5rem;flex-shrink:0}
-.vh{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:6px}
-.vp{font-size:14px;color:var(--text2);line-height:1.7}
-.vpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.04em}
-.ps{background:rgba(16,185,129,.2);color:#34d399;border:1px solid rgba(16,185,129,.3)}
-.pc{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
-.pr{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3)}
-.sec-head{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:2rem 0 .9rem;display:flex;align-items:center;gap:10px}
-.sec-head::after{content:'';flex:1;height:1px;background:var(--border)}
-.risk-list{display:flex;flex-direction:column;gap:10px;margin-bottom:.5rem}
-.risk-card{border-radius:var(--r);padding:1rem 1.2rem;border:1px solid;border-left:3px solid;transition:transform .2s;animation:fadeUp .4s ease both}
-.risk-card:hover{transform:translateX(4px)}
-.rh{background:var(--red-bg);border-color:var(--red-br);border-left-color:var(--red)}
-.rm{background:var(--yellow-bg);border-color:var(--yellow-br);border-left-color:var(--yellow)}
-.rl{background:var(--green-bg);border-color:var(--green-br);border-left-color:var(--green)}
-.risk-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.rbadge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.05em}
-.rbh{background:var(--red);color:white}
-.rbm{background:var(--yellow);color:white}
-.rbl{background:var(--green);color:white}
-.rtitle{font-weight:600;font-size:14px;color:var(--text);font-family:'Syne',sans-serif}
-.rquote{font-size:12px;font-style:italic;color:var(--text3);margin-bottom:7px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:6px;line-height:1.5;border-left:2px solid var(--border2)}
-.rexp{font-size:13px;color:var(--text2);line-height:1.6}
-.oblig-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.5rem}
-@media(max-width:560px){.oblig-grid{grid-template-columns:1fr}}
-.oblig-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem}
-.oblig-title{font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;letter-spacing:.04em}
-.oblig-item{display:flex;gap:8px;font-size:13px;color:var(--text2);margin-bottom:7px;line-height:1.5}
-.oblig-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:7px}
-.dates-list{display:flex;flex-direction:column;gap:8px;margin-bottom:.5rem}
-.date-item{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 14px;transition:border-color .2s}
-.date-item:hover{border-color:var(--border2)}
-.date-emoji{font-size:1.3rem;flex-shrink:0}
-.date-label{font-size:13px;font-weight:500;color:var(--text2);flex:1}
-.date-val{font-size:12px;background:rgba(99,102,241,.1);color:var(--accent2);padding:3px 10px;border-radius:20px;font-weight:600}
-.rec-box{border-radius:var(--r);padding:1.4rem;margin-bottom:.5rem;border:1px solid}
-.rec-safe{background:var(--green-bg);border-color:var(--green-br)}
-.rec-caution{background:var(--yellow-bg);border-color:var(--yellow-br)}
-.rec-risk{background:var(--red-bg);border-color:var(--red-br)}
-.rec-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.rec-text{font-size:14px;color:var(--text2);line-height:1.7}
-.action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.5rem}
-.btn-ghost{padding:10px 18px;border:1px solid var(--border);border-radius:var(--rsm);background:transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
-.btn-ghost:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,.04)}
-.btn-accent{padding:10px 18px;border:1px solid rgba(99,102,241,.3);border-radius:var(--rsm);background:rgba(99,102,241,.12);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
-.btn-accent:hover{background:rgba(99,102,241,.22);box-shadow:0 0 16px var(--glow)}
-.chat-section{margin-top:1.5rem;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:none;animation:fadeUp .3s ease}
-.chat-section.show{display:block}
-.chat-head{background:var(--bg3);padding:12px 16px;font-size:13px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif}
-.sample-qs{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;gap:6px;flex-wrap:wrap}
-.sample-q{font-size:11px;padding:5px 11px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.sample-q:hover{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:var(--accent2)}
-.chat-msgs{padding:14px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
-.chat-msg{max-width:85%;font-size:13px;line-height:1.6;padding:9px 13px;border-radius:12px}
-.chat-msg.user{background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;align-self:flex-end;border-radius:12px 12px 2px 12px}
-.chat-msg.ai{background:var(--bg3);border:1px solid var(--border);color:var(--text2);align-self:flex-start;border-radius:12px 12px 12px 2px}
-.chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);background:var(--bg2)}
-.chat-in{flex:1;padding:9px 14px;border:1px solid var(--border);border-radius:22px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .2s}
-.chat-in:focus{border-color:rgba(99,102,241,.4)}
-.chat-in::placeholder{color:var(--text3)}
-.chat-send{width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;cursor:pointer;font-size:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 10px var(--glow)}
-.chat-send:hover{transform:scale(1.1);box-shadow:0 4px 16px var(--glow2)}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:1000;align-items:center;justify-content:center;padding:1rem}
-.modal-bg.show{display:flex;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:2rem;max-width:460px;width:100%;animation:fadeUp .3s ease;box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(99,102,241,.1)}
-.modal-h{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}
-.modal-sub{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
-.modal-plans{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
-.modal-plan{border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s}
-.modal-plan:hover,.modal-plan.sel{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.07)}
-.modal-plan.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.plan-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
-.plan-name{font-weight:600;font-size:14px;font-family:'Syne',sans-serif}
-.plan-price{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;color:var(--accent2)}
-.plan-desc{font-size:12px;color:var(--text3)}
-.tg-pay-btn{width:100%;padding:13px;background:linear-gradient(135deg,#1d60bf,#2979d4);color:white;border:none;border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(41,121,212,.4)}
-.tg-pay-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(41,121,212,.5)}
-.modal-note{font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6}
-.modal-close{font-size:12px;color:var(--text3);text-align:center;margin-top:8px;cursor:pointer;transition:color .2s}
-.modal-close:hover{color:var(--text2)}
-.premium-block{margin-top:1.6rem;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.04));border:1px solid rgba(99,102,241,.2);border-radius:var(--rlg);padding:1.2rem}
-.pb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:1rem}
-.pb-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
-.pb-badge{font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,.16);border:1px solid rgba(99,102,241,.3);color:var(--accent2)}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.p-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;transition:transform .2s,border-color .2s,box-shadow .2s}
-.p-card:hover{transform:translateY(-2px);border-color:rgba(99,102,241,.35);box-shadow:0 10px 26px rgba(0,0,0,.25)}
-.p-card.featured{border-color:rgba(99,102,241,.4);box-shadow:0 0 0 1px rgba(99,102,241,.35) inset}
-.p-name{font-size:13px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:4px}
-.p-price{font-size:1.15rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent2);margin-bottom:8px}
-.p-feat{font-size:12px;color:var(--text2);line-height:1.7}
-.trust-row{margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap}
-.trust-pill{font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.02);color:var(--text2)}
-.faq-wrap{margin-top:1.6rem;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;background:var(--bg2)}
-.faq-head{padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700}
-.faq-item{border-bottom:1px solid var(--border)}
-.faq-item:last-child{border-bottom:none}
-.faq-q{width:100%;text-align:left;background:transparent;border:none;color:var(--text);padding:13px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif}
-.faq-q:hover{background:rgba(99,102,241,.05)}
-.faq-a{max-height:0;overflow:hidden;padding:0 14px;color:var(--text2);font-size:13px;line-height:1.7;transition:max-height .28s ease,padding .28s ease}
-.faq-item.open .faq-a{max-height:140px;padding:0 14px 13px}
-.faq-item.open .faq-ico{transform:rotate(45deg)}
-.faq-ico{font-size:16px;color:var(--accent2);transition:transform .2s}
-.cta-band{margin-top:1.5rem;padding:1rem 1.1rem;border:1px solid rgba(99,102,241,.25);border-radius:14px;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(79,70,229,.08));display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-.cta-t{font-size:13px;color:var(--text2)}
-.cta-b{padding:10px 14px;border-radius:10px;border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.2);color:#c7d2fe;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer}
-.reveal{opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .45s ease}
-.reveal.show{opacity:1;transform:translateY(0)}
-@media(max-width:720px){.pricing-grid{grid-template-columns:1fr}}
-::-webkit-scrollbar{width:4px;height:4px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+body{
+  font-family:'Exo 2',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* Grid bg */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,136,.025) 1px,transparent 1px);
+  background-size:44px 44px;
+  z-index:0;pointer-events:none;
+}
+/* Scanlines */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px);
+  z-index:1;pointer-events:none;
+}
+#app{position:relative;z-index:2}
+
+/* ── NOTIFICATION ── */
+#notif{
+  position:fixed;top:-110px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:430px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-left:3px solid var(--g);
+  padding:14px 18px;border-radius:3px;
+  transition:top .45s cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;display:flex;align-items:center;gap:12px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+  box-shadow:var(--glow);letter-spacing:1px;
+}
+#notif.show{top:16px}
+#notif.err{border-left-color:var(--r);box-shadow:0 0 22px rgba(255,51,85,.3)}
+#notifIcon{font-size:14px}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;padding:18px 16px}
+.screen.on{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HUD CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:3px;padding:18px;margin-bottom:14px;
+  position:relative;backdrop-filter:blur(3px);
+}
+.card::before,.card::after{
+  content:'';position:absolute;
+  width:10px;height:10px;border-color:var(--g);border-style:solid;
+}
+.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+
+/* ── LOGIN ── */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+}
+.login-wrap{width:100%;max-width:370px}
+.logo-hex{
+  text-align:center;margin-bottom:36px;
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%,100%{filter:drop-shadow(0 0 8px rgba(0,255,136,.45))}
+  50%{filter:drop-shadow(0 0 28px rgba(0,255,136,.9))}
+}
+.logo-svg{width:76px;height:76px;margin:0 auto 14px;display:block}
+.logo-name{
+  font-family:'Orbitron',monospace;font-size:26px;font-weight:900;
+  color:var(--g);letter-spacing:6px;
+}
+.logo-ver{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--mute);letter-spacing:4px;margin-top:5px;
+}
+
+/* inputs */
+.flabel{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--mute);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:5px;display:block;
+}
+.finp{
+  width:100%;padding:13px 14px;
+  background:rgba(0,255,136,.03);
+  border:1px solid var(--border);border-radius:2px;
+  color:var(--txt);
+  font-family:'Share Tech Mono',monospace;font-size:13px;
+  outline:none;transition:all .3s;
+}
+.finp:focus{border-color:var(--g);background:rgba(0,255,136,.06);box-shadow:var(--glow)}
+.finp::placeholder{color:rgba(58,143,168,.4)}
+.fgroup{margin-bottom:12px}
+
+/* buttons */
+.btnP{
+  width:100%;padding:15px;
+  background:transparent;border:1px solid var(--g);
+  color:var(--g);font-family:'Orbitron',monospace;
+  font-size:12px;font-weight:700;letter-spacing:4px;
+  text-transform:uppercase;border-radius:2px;cursor:pointer;
+  position:relative;overflow:hidden;transition:all .3s;margin-top:8px;
+}
+.btnP::before{
+  content:'';position:absolute;top:0;left:-100%;
+  width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,255,136,.12),transparent);
+  transition:left .45s;
+}
+.btnP:hover::before{left:100%}
+.btnP:hover{background:rgba(0,255,136,.09);box-shadow:var(--glow)}
+.btnP:active{transform:scale(.98)}
+.btnP:disabled,.btnP.ld{opacity:.6;pointer-events:none}
+
+.btnD{
+  padding:8px 12px;background:transparent;
+  border:1px solid rgba(255,51,85,.35);color:var(--r);
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  border-radius:2px;cursor:pointer;transition:all .3s;white-space:nowrap;
+}
+.btnD:hover{background:rgba(255,51,85,.1);border-color:var(--r)}
+.btnS{
+  padding:7px 12px;background:transparent;
+  border:1px solid var(--border);color:var(--mute);
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  border-radius:2px;cursor:pointer;transition:all .3s;
+}
+.btnS:hover{border-color:var(--c);color:var(--c)}
+.btnA{
+  padding:7px 14px;background:transparent;
+  border:1px solid rgba(255,214,0,.35);color:var(--y);
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  border-radius:2px;cursor:pointer;transition:all .3s;
+}
+.btnA:hover{background:rgba(255,214,0,.1);border-color:var(--y)}
+
+/* ── DASHBOARD HEADER ── */
+.dhead{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 0 14px;
+  border-bottom:1px solid var(--border);margin-bottom:18px;
+}
+.dtitle{
+  font-family:'Orbitron',monospace;font-size:17px;
+  font-weight:700;color:var(--g);letter-spacing:3px;
+}
+.dsub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute);margin-top:4px;letter-spacing:1px}
+.dactions{display:flex;gap:8px;align-items:center}
+.logout-btn{
+  width:34px;height:34px;background:transparent;
+  border:1px solid rgba(255,51,85,.3);border-radius:2px;
+  color:var(--r);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .3s;
+}
+.logout-btn:hover{background:rgba(255,51,85,.1);border-color:var(--r)}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:2px;border-bottom:1px solid var(--border);
+  margin-bottom:18px;
+}
+.tab{
+  padding:10px 14px;background:transparent;border:none;
+  border-bottom:2px solid transparent;
+  color:var(--mute);font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all .3s;margin-bottom:-1px;
+}
+.tab.on{color:var(--g);border-bottom-color:var(--g)}
+.tp{display:none}
+.tp.on{display:block;animation:fadeUp .3s ease}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.sbox{
+  background:rgba(0,255,136,.03);border:1px solid var(--border);
+  border-radius:3px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;
+}
+.sbox::after{
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--g),transparent);
+  animation:sline 2.5s ease-in-out infinite;
+}
+@keyframes sline{0%,100%{opacity:.25}50%{opacity:1}}
+.slabel{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--mute);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;
+}
+.sval{
+  font-family:'Orbitron',monospace;font-size:21px;
+  font-weight:900;color:var(--g);
+  text-shadow:0 0 14px rgba(0,255,136,.45);
+}
+.sval.c{color:var(--c);text-shadow:0 0 14px rgba(0,212,255,.45)}
+.sval.r{color:var(--r);text-shadow:0 0 14px rgba(255,51,85,.45)}
+.premium-strip{
+  margin-bottom:14px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(0,212,255,.25);background:rgba(0,212,255,.06);
+  display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.pstat{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--c);letter-spacing:1px}
+.pbadge{
+  padding:4px 9px;border-radius:999px;border:1px solid var(--border);font-size:10px;
+  font-family:'Orbitron',sans-serif;letter-spacing:1px;
+}
+.pbadge.on{border-color:rgba(0,255,136,.35);color:var(--g);background:rgba(0,255,136,.08)}
+.pbadge.off{border-color:rgba(255,214,0,.35);color:var(--y);background:rgba(255,214,0,.08)}
+.hint{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute);line-height:1.7;letter-spacing:1px}
+.ta{
+  width:100%;min-height:92px;padding:12px;border-radius:12px;resize:vertical;
+  border:1px solid var(--border);background:rgba(0,255,136,.03);color:var(--txt);
+  font-family:'Exo 2',sans-serif;font-size:13px;outline:none;
+}
+.ta:focus{border-color:rgba(0,255,136,.45);box-shadow:0 0 0 2px rgba(0,255,136,.08)}
+.plan-card{margin-top:12px;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
+.plan-item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px}
+.plan-item:last-child{border-bottom:none}
+
+/* ── ACCOUNT LIST ── */
+.accs{margin-bottom:110px}
+.acc{
+  background:rgba(0,255,136,.02);border:1px solid var(--border);
+  border-radius:3px;padding:13px 15px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+  animation:fadeUp .3s ease;transition:all .3s;
+}
+.acc:hover{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.04)}
+.acc.yes{border-left:2px solid var(--g)}
+.acc.no{border-left:2px solid rgba(255,51,85,.5)}
+.aleft{flex:1;min-width:0;margin-right:12px}
+.aemail{
+  font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--txt);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.abadge{
+  display:inline-flex;align-items:center;gap:5px;margin-top:4px;
+  font-size:10px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;
+}
+.abadge.on{color:var(--g)}.abadge.off{color:rgba(255,51,85,.7)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.dot.pulse{animation:dp 1.5s ease-in-out infinite}
+@keyframes dp{0%,100%{opacity:1;box-shadow:0 0 0 0 currentColor}50%{opacity:.7;box-shadow:0 0 0 4px transparent}}
+
+/* ── SCAN BUTTON ── */
+.scan-fixed{position:fixed;bottom:18px;left:16px;right:16px;z-index:200}
+.scanBtn{
+  width:100%;height:62px;background:transparent;
+  border:2px solid var(--g);border-radius:3px;
+  color:var(--g);font-family:'Orbitron',monospace;font-size:13px;
+  font-weight:900;letter-spacing:5px;cursor:pointer;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  box-shadow:0 0 28px rgba(0,255,136,.28),inset 0 0 28px rgba(0,255,136,.04);
+  transition:all .3s;
+}
+.scanBtn::before{
+  content:'';position:absolute;
+  top:-5%;left:0;width:100%;height:3px;
+  background:linear-gradient(90deg,transparent,var(--g),transparent);
+  animation:scanline 2.2s linear infinite;opacity:.55;
+}
+@keyframes scanline{0%{top:-5%}100%{top:105%}}
+.scanBtn:active{transform:scale(.99);box-shadow:0 0 50px rgba(0,255,136,.5)}
+.scanBtn.scanning{animation:sbpulse 1s ease-in-out infinite;pointer-events:none}
+@keyframes sbpulse{0%,100%{box-shadow:0 0 28px rgba(0,255,136,.28)}50%{box-shadow:0 0 60px rgba(0,255,136,.65)}}
+.scanBtn .spin{
+  width:20px;height:20px;border:2px solid rgba(0,255,136,.3);
+  border-top-color:var(--g);border-radius:50%;
+  animation:sp .6s linear infinite;flex-shrink:0;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── HISTORY ── */
+.hist-item{
+  padding:13px 15px;border:1px solid var(--border);
+  border-radius:3px;margin-bottom:8px;
+  font-family:'Share Tech Mono',monospace;
+  animation:fadeUp .3s ease;
+}
+.hist-time{font-size:11px;color:var(--mute);margin-bottom:5px}
+.hist-res{font-size:13px;display:flex;align-items:center;gap:8px}
+
+/* ── MODAL ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(4,13,26,.92);z-index:1000;
+  align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(5px);
+}
+.overlay.on{display:flex;animation:fadeUp .3s ease}
+.mbox{
+  background:var(--bg2);border:1px solid var(--borderHi);
+  border-radius:4px;padding:22px;width:100%;max-width:420px;
+  max-height:82vh;overflow-y:auto;
+  box-shadow:0 0 60px rgba(0,255,136,.2);
+  animation:mslide .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mslide{from{transform:scale(.82) translateY(18px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.mtitle{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:700;
+  color:var(--g);letter-spacing:3px;margin-bottom:18px;text-align:center;
+}
+.rsum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.rbox{text-align:center;padding:14px 6px;border:1px solid var(--border);border-radius:3px}
+.rnum{font-family:'Orbitron',monospace;font-size:26px;font-weight:900}
+.rnum.g{color:var(--g)}.rnum.r{color:var(--r)}.rnum.c{color:var(--c)}
+.rlabel{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:1px;margin-top:4px}
+.rlist{max-height:200px;overflow-y:auto}
+.ritem{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+}
+.ritem .ok{color:var(--g)}.ritem .fail{color:var(--r)}
+.remail{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)}
+
+/* ── ADMIN ── */
+.atbl{width:100%;border-collapse:collapse;font-family:'Share Tech Mono',monospace;font-size:11px}
+.atbl th{
+  background:rgba(0,255,136,.05);color:var(--mute);
+  padding:10px 11px;text-align:left;font-size:9px;
+  letter-spacing:2px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+.atbl td{padding:10px 11px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--txt);word-break:break-all}
+.atbl tr:hover td{background:rgba(0,255,136,.02)}
+.tbl-wrap{overflow-x:auto}
+
+/* ── SECTION HEADER ── */
+.sec{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.seclabel{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:3px;text-transform:uppercase}
+
+/* ── EMPTY ── */
+.empty{
+  text-align:center;padding:36px 20px;
+  font-family:'Share Tech Mono',monospace;color:var(--mute);font-size:12px;letter-spacing:1px;
+}
+.empty::before{content:'[ NO DATA ]';display:block;font-size:10px;margin-bottom:8px;opacity:.5}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-footer{text-align:center;font-size:12px;color:var(--text3);margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);padding-bottom:2rem;line-height:1.8}
-footer a{color:var(--accent2);text-decoration:none}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--g)}
+
+/* ── PROGRESS ── */
+.progwrap{width:100%;height:3px;background:rgba(0,255,136,.1);border-radius:2px;overflow:hidden;margin:8px 0}
+.prog{height:100%;background:var(--g);border-radius:2px;animation:ind 1.5s ease-in-out infinite}
+@keyframes ind{0%{width:0%;margin-left:0%}50%{width:65%;margin-left:15%}100%{width:0%;margin-left:100%}}
 </style>
 </head>
 <body>
-<canvas id="particles"></canvas>
-<div class="orb orb1"></div><div class="orb orb2"></div>
+<div id="app">
 
-<div class="modal-bg" id="paywallModal">
-  <div class="modal">
-    <div class="modal-h">Pro versiyaga o'tish</div>
-    <div class="modal-sub">Siz 3 ta bepul demoni ishlatdingiz. Davom etish uchun Telegram orqali murojaat qiling va to'lov qiling.</div>
-    <div class="modal-plans">
-      <div class="modal-plan sel" onclick="selPlan(this,'starter')">
-        <div class="plan-row"><span class="plan-name">⚡ Starter</span><span class="plan-price">$9.99/oy</span></div>
-        <div class="plan-desc">20 ta tahlil · 3 til · Chat rejimi</div>
-      </div>
-      <div class="modal-plan" onclick="selPlan(this,'pro')">
-        <div class="plan-row"><span class="plan-name">🚀 Pro</span><span class="plan-price">$29.99/oy</span></div>
-        <div class="plan-desc">Cheksiz tahlil · Hisobot eksport · Ustunlik</div>
-      </div>
-      <div class="modal-plan" onclick="selPlan(this,'single')">
-        <div class="plan-row"><span class="plan-name">🎯 Bir marta</span><span class="plan-price">$3.99</span></div>
-        <div class="plan-desc">3 ta tahlil · Muddatsiz · Obuna shart emas</div>
-      </div>
+<!-- NOTIFICATION -->
+<div id="notif">
+  <span id="notifIcon"></span>
+  <span id="notifTxt" style="flex:1"></span>
+</div>
+
+<!-- ══════════════════════ LOGIN ══════════════════════ -->
+<div id="loginScreen" class="screen">
+  <div class="login-wrap">
+    <div class="logo-hex">
+      <svg class="logo-svg" viewBox="0 0 80 80" fill="none">
+        <polygon points="40,3 73,21.5 73,58.5 40,77 7,58.5 7,21.5" fill="none" stroke="#00ff88" stroke-width="1.8"/>
+        <polygon points="40,14 63,27.5 63,52.5 40,66 17,52.5 17,27.5" fill="none" stroke="#00ff88" stroke-width="1" opacity=".35"/>
+        <path d="M28 40 L40 28 L52 40 L40 52 Z" fill="none" stroke="#00ff88" stroke-width="1.5"/>
+        <circle cx="40" cy="40" r="3.5" fill="#00ff88"/>
+        <circle cx="40" cy="40" r="8" fill="none" stroke="#00ff88" stroke-width=".7" opacity=".4" stroke-dasharray="2 3"/>
+        <line x1="40" y1="3" x2="40" y2="14" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+        <line x1="40" y1="66" x2="40" y2="77" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+        <line x1="7" y1="21.5" x2="17" y2="27.5" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+        <line x1="73" y1="21.5" x2="63" y2="27.5" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+        <line x1="7" y1="58.5" x2="17" y2="52.5" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+        <line x1="73" y1="58.5" x2="63" y2="52.5" stroke="#00ff88" stroke-width=".8" opacity=".35"/>
+      </svg>
+      <div class="logo-name">HERO</div>
+      <div class="logo-ver">SCANNER // PRO v2.0</div>
     </div>
-    <button class="tg-pay-btn" onclick="goToPay()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
-      Telegram orqali murojaat →
-    </button>
-    <div class="modal-note">Telegram'da to'lovni amalga oshiring va token oling</div>
-    <div class="modal-close" onclick="closeModal()">Keyinroq</div>
+
+    <div class="card">
+      <div class="fgroup">
+        <label class="flabel">// Foydalanuvchi nomi</label>
+        <input id="loginInp" class="finp" type="text" placeholder="hero_XXXXXXXXX" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">// Kirish kodi</label>
+        <input id="passInp" class="finp" type="password" placeholder="••••••••••••" autocomplete="current-password">
+      </div>
+      <button class="btnP" id="loginBtn" onclick="doLogin()">TIZIMGA KIRISH</button>
+    </div>
+
+    <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;line-height:1.9">
+      Telegram botdan <span style="color:var(--c)">/login</span> buyrug'i orqali<br>login va parol oling
+    </div>
   </div>
 </div>
 
-<header>
-  <a class="logo" href="#"><div class="logo-icon">⚖️</div>ShartnomAI</a>
-  <div class="hright">
-    <span class="badge-live">Jonli</span>
-    <a class="hbtn" id="tgLink" href="#" target="_blank">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
-      Telegram
-    </a>
-    <button class="hbtn" onclick="showTokenSection()">🔑 Token</button>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="hero">
-    <div class="hero-tag" id="heroTag">🤖 AI · Yuridik tahlil · O'zbek tili</div>
-    <h1 id="heroTitle">Shartnomangizni<br><span class="grad">AI tahlil qiladi</span></h1>
-    <p id="heroDesc">Xavfli bandlar, majburiyatlar, muhim sanalar — 60 soniyada. Yurist yollamasdan.</p>
-    <div class="hstats">
-      <div class="hs"><strong>60s</strong><span id="stat1">Tahlil vaqti</span></div>
-      <div class="hs"><strong>3</strong><span id="stat2">Til</span></div>
-      <div class="hs"><strong>100%</strong><span id="stat3">Maxfiy</span></div>
-      <div class="hs"><strong>3x</strong><span id="stat4">Bepul demo</span></div>
+<!-- ══════════════════════ DASHBOARD ══════════════════════ -->
+<div id="dashScreen" class="screen">
+  <div class="dhead">
+    <div>
+      <div class="dtitle">HERO SCAN</div>
+      <div class="dsub" id="userLabel">// FOYDALANUVCHI</div>
+    </div>
+    <div class="dactions">
+      <button id="adminBtn" class="btnA" onclick="goAdmin()" style="display:none">⚡ ADMIN</button>
+      <button class="logout-btn" onclick="doLogout()" title="Chiqish">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <div class="features-strip">
-    <div class="feat"><span class="feat-ico">🔍</span><span class="feat-t" id="featT1">Xavf tahlili</span><span class="feat-s" id="featS1">Qizil/sariq/yashil</span></div>
-    <div class="feat"><span class="feat-ico">📋</span><span class="feat-t" id="featT2">Majburiyatlar</span><span class="feat-s" id="featS2">Ikkala tomon</span></div>
-    <div class="feat"><span class="feat-ico">📅</span><span class="feat-t" id="featT3">Sanalar</span><span class="feat-s" id="featS3">Muddatlar</span></div>
-    <div class="feat"><span class="feat-ico">💬</span><span class="feat-t" id="featT4">Chat rejimi</span><span class="feat-s" id="featS4">Savol-javob</span></div>
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab(this,'tpMain')">BOSH</button>
+    <button class="tab" onclick="switchTab(this,'tpAdd')">+ QO'SHISH</button>
+    <button class="tab" onclick="switchTab(this,'tpHistory')">TARIX</button>
+    <button class="tab" onclick="switchTab(this,'tpPremium')">PREMIUM</button>
   </div>
 
-  <div class="token-section" id="tokenSection">
-    <h3 id="tokenHeading">🔑 Obuna tokenini kiriting</h3>
-    <div class="token-row">
-      <input type="text" class="token-in" id="tokenInput" placeholder="SH-XXXX-XXXX-XXXX">
-      <button class="token-submit" id="tokenSubmit" onclick="verifyToken()">Kirish</button>
+  <!-- TAB: MAIN -->
+  <div id="tpMain" class="tp on">
+    <div class="premium-strip">
+      <div>
+        <div class="pstat">PREMIUM HOLATI</div>
+        <div class="hint" id="premiumHint">Faol emas — jadval bron funksiyasi bloklangan</div>
+      </div>
+      <div class="pbadge off" id="premiumBadge">FREE</div>
     </div>
-    <div class="token-hint" id="tokenHint">Token Telegram'dan keladi. Muammo: <a id="tgHint" href="#">@Mluhammadali</a></div>
-    <div class="tok-ok" id="tokOk">✅ Muvaffaqiyatli! Cheksiz tahlil mumkin.</div>
-    <div class="tok-err" id="tokErr">❌ Token noto'g'ri.</div>
+    <div class="stats">
+      <div class="sbox"><div class="slabel">AKKAUNT</div><div class="sval" id="stTotal">—</div></div>
+      <div class="sbox"><div class="slabel">MUVAFFAQ</div><div class="sval c" id="stSucc">—</div></div>
+      <div class="sbox"><div class="slabel">OXIRGI</div><div class="sval" id="stLast">—/—</div></div>
+    </div>
+
+    <div class="sec">
+      <div class="seclabel">// AKKAUNTLAR</div>
+      <button class="btnS" onclick="loadData()" style="font-size:10px;padding:5px 11px">↻ YANGILASH</button>
+    </div>
+    <div class="accs" id="accList"><div class="empty">Yuklanmoqda...</div></div>
   </div>
 
-  <div class="demo-banner" id="demoBanner">
-    <span>⚡</span>
-    <span id="demoTextBefore">Sizda</span> <span class="demo-count" id="demoCount">3</span> <span id="demoTextAfter">ta bepul demo qoldi.</span>
-    <span id="demoTextFull">To'liq versiya:</span> <a id="tgBanner" href="#" target="_blank" style="color:var(--accent2)">Telegram</a>
+  <!-- TAB: ADD -->
+  <div id="tpAdd" class="tp">
+    <div class="card">
+      <div class="seclabel" style="margin-bottom:14px">// YANGI AKKAUNT QO'SHISH</div>
+      <div class="fgroup">
+        <label class="flabel">Hero Email</label>
+        <input id="newEmail" class="finp" type="email" placeholder="email@hero.uz" autocomplete="off">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Hero Paroli</label>
+        <input id="newPass" class="finp" type="password" placeholder="••••••••">
+      </div>
+      <button class="btnP" onclick="addAcc()" id="addBtn" style="margin-top:8px">RO'YXATGA QO'SHISH</button>
+    </div>
+    <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;line-height:1.9;padding:8px">
+      Hero tizimidagi <span style="color:var(--c)">email</span> va <span style="color:var(--c)">parol</span>ni kiriting.<br>
+      Skan vaqtida davomat avtomatik belgilanadi.
+    </div>
   </div>
 
-  <div class="card">
-    <div class="lang-row">
-      <span class="lang-label" id="langLabel">Til:</span>
-      <button class="lang-btn active" onclick="setLang('uz',this)">🇺🇿 O'zbek</button>
-      <button class="lang-btn" onclick="setLang('ru',this)">🇷🇺 Русский</button>
-      <button class="lang-btn" onclick="setLang('en',this)">🇬🇧 English</button>
+  <!-- TAB: HISTORY -->
+  <div id="tpHistory" class="tp">
+    <div id="histList"><div class="empty">Tarix yuklanmoqda...</div></div>
+  </div>
+
+  <!-- TAB: PREMIUM -->
+  <div id="tpPremium" class="tp">
+    <div class="card">
+      <div class="seclabel" style="margin-bottom:14px">// PREMIUM AKTIVATSIYA</div>
+      <div class="fgroup">
+        <label class="flabel">Premium kodi</label>
+        <input id="premiumCode" class="finp" type="text" placeholder="PREM-XXXX-XXXX">
+      </div>
+      <button class="btnP" onclick="activatePremium()" id="premiumBtn" style="margin-top:8px">PREMIUMNI YOQISH</button>
     </div>
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" class="upload-input" id="fileInput" accept=".pdf,.txt" onchange="handleFile(event)">
-      <div class="upload-ico">📄</div>
-      <div class="upload-title" id="uploadTitle">PDF yoki TXT faylni tashlang</div>
-      <div class="upload-sub" id="uploadSub">yoki bosib faylni tanlang · Maksimal 5MB</div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="seclabel" style="margin-bottom:14px">// GOOGLE + DARS JADVALI SOZLAMASI</div>
+      <div class="fgroup">
+        <label class="flabel">Google email</label>
+        <input id="googleEmail" class="finp" type="email" placeholder="name@gmail.com">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Timezone</label>
+        <input id="tzName" class="finp" type="text" value="Asia/Tashkent">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Kurs/Fan</label>
+        <input id="prefCourse" class="finp" type="text" placeholder="Math 101">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Xona</label>
+        <input id="prefRoom" class="finp" type="text" placeholder="A-302">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Kunlar (vergul bilan)</label>
+        <input id="prefDays" class="finp" type="text" placeholder="monday,wednesday,friday">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Vaqt oralig'i</label>
+        <input id="prefTime" class="finp" type="text" placeholder="08:00-18:00">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Izoh</label>
+        <textarea id="prefNotes" class="ta" placeholder="Masalan: faqat bo'sh xonalar, 2-qavat afzal"></textarea>
+      </div>
+      <button class="btnP" onclick="savePremiumPrefs()" id="prefBtn" style="margin-top:8px">SOZLAMANI SAQLASH</button>
+      <div class="hint" style="margin-top:10px">Eslatma: keyingi bosqichda Google OAuth ulab avtomatik jadval olishni yoqamiz.</div>
     </div>
-    <div class="or-div" id="orDiv">yoki matn kiriting</div>
-    <textarea class="paste-area" id="pasteArea" placeholder="Bu yerga shartnoma matnini nusxalab joylashtiring..." oninput="updateCC()"></textarea>
-    <div class="char-count" id="charCount">0 / 12,000</div>
-    <div class="error-box" id="errorBox"></div>
-    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
-      <div class="btn-shine"></div>
-      <span>🔍</span> <span id="analyzeBtnText">Shartnomani Tahlil Qilish</span>
+
+    <div class="card" style="margin-top:12px">
+      <div class="seclabel" style="margin-bottom:14px">// SLOT PLANNER (TEST REJIM)</div>
+      <div class="hint" style="margin-bottom:8px">JSON massiv kiriting: [{"course":"Math","room":"A-302","day":"monday","time":"10:00-11:00","status":"free"}]</div>
+      <textarea id="scheduleInput" class="ta" placeholder='[{"course":"Math 101","room":"A-302","day":"monday","time":"10:00-11:00","status":"free"}]'></textarea>
+      <button class="btnP" onclick="buildBookingPlan()" id="planBtn" style="margin-top:8px">MOS SLOTLARNI TOPISH</button>
+      <div id="planOut" class="plan-card"><div class="hint">Hozircha reja yaratilmagan.</div></div>
+    </div>
+  </div>
+
+  <!-- FIXED SCAN BTN -->
+  <div class="scan-fixed">
+    <button class="scanBtn" id="scanBtn" onclick="startScan()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="5.5"/>
+        <circle cx="12" cy="12" r="2"/>
+        <line x1="12" y1="2" x2="12" y2="22" opacity=".28"/>
+        <line x1="2" y1="12" x2="22" y2="12" opacity=".28"/>
+        <path d="M12 12 L19 5" stroke-width="2" stroke-dasharray="2 2"/>
+      </svg>
+      DAVOMATGA KIRITISH
     </button>
   </div>
-
-  <div class="loading-state" id="loadingState">
-    <div class="ai-loader">
-      <div class="alr"></div><div class="alr"></div><div class="alr"></div>
-      <div class="alr-core">🤖</div>
-    </div>
-    <div class="loading-title" id="loadingTitle">AI tahlil qilmoqda...</div>
-    <div class="loading-sub" id="loadingSub">30–60 soniya kutib turing</div>
-    <div class="load-steps">
-      <div class="ls active" id="step1"><div class="ls-dot"></div><span id="stepText1">Matn ajratilmoqda</span></div>
-      <div class="ls" id="step2"><div class="ls-dot"></div><span id="stepText2">Xavfli bandlar topilmoqda</span></div>
-      <div class="ls" id="step3"><div class="ls-dot"></div><span id="stepText3">Majburiyatlar tahlil qilinmoqda</span></div>
-      <div class="ls" id="step4"><div class="ls-dot"></div><span id="stepText4">Hisobot tayyorlanmoqda</span></div>
-    </div>
-  </div>
-
-  <div class="results" id="resultsSection">
-    <div id="verdictCard"></div>
-    <div class="sec-head" id="riskHead">Xavfli bandlar</div>
-    <div class="risk-list" id="riskList"></div>
-    <div class="sec-head" id="obligHead">Majburiyatlar</div>
-    <div class="oblig-grid" id="obligGrid"></div>
-    <div class="sec-head" id="datesHead">Muhim sanalar</div>
-    <div class="dates-list" id="datesList"></div>
-    <div class="sec-head" id="recHead">Umumiy tavsiya</div>
-    <div id="recBox"></div>
-    <div class="action-row">
-      <button class="btn-ghost" id="newContractBtn" onclick="resetAll()">↩ Yangi shartnoma</button>
-      <button class="btn-ghost" id="copyBtn" onclick="copyReport()">📋 Nusxa olish</button>
-      <button class="btn-accent" id="chatToggleBtn" onclick="toggleChat()">💬 Savol so'rash</button>
-    </div>
-    <div class="chat-section" id="chatSection">
-      <div class="chat-head" id="chatHead">💬 Shartnoma haqida savol bering</div>
-      <div class="sample-qs" id="sampleQs"></div>
-      <div class="chat-msgs" id="chatMsgs"></div>
-      <div class="chat-input-row">
-        <input class="chat-in" id="chatIn" placeholder="Savolingizni yozing..." onkeydown="if(event.key==='Enter')sendChat()">
-        <button class="chat-send" onclick="sendChat()">➤</button>
-      </div>
-    </div>
-  </div>
-
-  <section class="premium-block reveal">
-    <div class="pb-head">
-      <div class="pb-title">Premium imkoniyatlar</div>
-      <span class="pb-badge">Monetization ready</span>
-    </div>
-    <div class="pricing-grid">
-      <div class="p-card">
-        <div class="p-name">Starter</div>
-        <div class="p-price">$9.99/oy</div>
-        <div class="p-feat">20 ta tahlil</div>
-        <div class="p-feat">3 ta til</div>
-        <div class="p-feat">Chat rejimi</div>
-      </div>
-      <div class="p-card featured">
-        <div class="p-name">Pro</div>
-        <div class="p-price">$29.99/oy</div>
-        <div class="p-feat">Cheksiz tahlil</div>
-        <div class="p-feat">Prioritet javob</div>
-        <div class="p-feat">Eksport (copy/report)</div>
-      </div>
-      <div class="p-card">
-        <div class="p-name">Bir martalik</div>
-        <div class="p-price">$3.99</div>
-        <div class="p-feat">3 ta tahlil</div>
-        <div class="p-feat">Muddatsiz</div>
-        <div class="p-feat">Obunasiz ishlaydi</div>
-      </div>
-    </div>
-    <div class="trust-row">
-      <span class="trust-pill">🔒 Maxfiylik</span>
-      <span class="trust-pill">⚡ 60 soniya ichida</span>
-      <span class="trust-pill">🌍 3 tilda</span>
-      <span class="trust-pill">💬 Telegram support</span>
-    </div>
-  </section>
-
-  <section class="faq-wrap reveal">
-    <div class="faq-head">Ko'p so'raladigan savollar</div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Ma'lumotlar saqlanadimi?<span class="faq-ico">+</span></button>
-      <div class="faq-a">Yo'q. Hujjatlar doimiy saqlanmaydi, faqat tahlil jarayonida qayta ishlanadi.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">AI xato qilishi mumkinmi?<span class="faq-ico">+</span></button>
-      <div class="faq-a">Ha, shuning uchun yakuniy qarorlar uchun yurist tekshiruvi tavsiya qilinadi.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Qaysi formatlar ishlaydi?<span class="faq-ico">+</span></button>
-      <div class="faq-a">Hozircha PDF, TXT va to'g'ridan-to'g'ri matn kiritish qo'llab-quvvatlanadi.</div>
-    </div>
-  </section>
-
-  <div class="cta-band reveal">
-    <div class="cta-t">Jamoa yoki biznes uchun alohida tarif kerakmi? Telegram orqali yozing, sizga mos plan tayyorlaymiz.</div>
-    <button class="cta-b" onclick="goToPay()">Premium'ga o'tish</button>
-  </div>
-
-  <footer>
-    <span id="footerLine1">ShartnomAI — yuridik maslahat emas. Muhim qarorlar uchun yuristga murojaat qiling.</span><br>
-    <span id="footerLine2">Hujjatlaringiz serverda saqlanmaydi. To'lov va savollar:</span> <a id="tgFooter" href="#" target="_blank">Telegram</a>
-  </footer>
 </div>
+
+<!-- ══════════════════════ ADMIN ══════════════════════ -->
+<div id="adminScreen" class="screen">
+  <div class="dhead">
+    <div>
+      <div class="dtitle" style="color:var(--y)">ADMIN PANEL</div>
+      <div class="dsub">// SUPER FOYDALANUVCHI</div>
+    </div>
+    <button class="btnS" onclick="goBack()">← ORQAGA</button>
+  </div>
+
+  <div class="sec" style="margin-bottom:10px">
+    <div class="seclabel">// BARCHA AKKAUNTLAR</div>
+    <button class="btnS" onclick="loadAdmin()" style="font-size:10px;padding:5px 11px">↻ YANGILASH</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">
+    <div class="tbl-wrap">
+      <table class="atbl">
+        <thead><tr><th>TELEGRAM</th><th>EMAIL</th><th>HOLAT</th></tr></thead>
+        <tbody id="adminAccs"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:10px">
+    <div class="seclabel">// OXIRGI SKANLAR</div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">
+    <div class="tbl-wrap">
+      <table class="atbl">
+        <thead><tr><th>FOYDALANUVCHI</th><th>NATIJA</th><th>DAVOM. (S)</th><th>VAQT</th></tr></thead>
+        <tbody id="adminLogs"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:10px">
+    <div class="seclabel">// FOYDALANUVCHI STATISTIKA</div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-wrap">
+      <table class="atbl">
+        <thead><tr><th>FOYDALANUVCHI</th><th>AKKAUNT SONI</th></tr></thead>
+        <tbody id="adminCounts"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCAN RESULT MODAL ══════════════════════ -->
+<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <div class="mtitle">// SKAN NATIJASI</div>
+    <div class="rsum" id="rsum"></div>
+    <div class="seclabel" style="margin-bottom:8px;display:block">BATAFSIL HISOBOT</div>
+    <div class="rlist" id="rlist"></div>
+    <button class="btnP" onclick="closeModal()" style="margin-top:18px">YOPISH</button>
+  </div>
+</div>
+
+</div><!-- #app -->
 
 <script>
-if(typeof pdfjsLib!=='undefined')
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ═══════════════════════ TELEGRAM ═══════════════════════
+const tg = window.Telegram?.WebApp;
+if(tg){tg.expand();tg.ready()}
 
-// ═══ SOZLAMALAR — O'ZGARTIRING ═══
-const TG_LINK='https://t.me/Mluhammadali'; // <- o'z Telegram linkingi
-const API_ENDPOINT='/api/analyze';
-const MAX_FREE=3;
-// ════════════════════════════════
+// ═══════════════════════ STATE ═══════════════════════
+let _token=null, _uid=null, _role=null, _premium=false;
 
-// Update TG links
-['tgLink','tgBanner','tgFooter','tgHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.href=TG_LINK});
-document.querySelectorAll('.tg-pay-btn').forEach(()=>{});
+// ═══════════════════════ INIT ═══════════════════════
+function init(){
+  _token = sessionStorage.getItem('hs_t');
+  _uid   = sessionStorage.getItem('hs_u');
+  _role  = sessionStorage.getItem('hs_r');
+  _premium = sessionStorage.getItem('hs_p') === '1';
+  if(_token && _uid){
+    show('dashScreen');
+    document.getElementById('userLabel').textContent = '// ' + (sessionStorage.getItem('hs_l') || '');
+    if(_role==='super_admin') document.getElementById('adminBtn').style.display='inline-flex';
+    loadData();
+    loadPremiumStatus();
+  } else {
+    show('loginScreen');
+  }
+}
 
-// Particles
-(function(){
-  const c=document.getElementById('particles'),ctx=c.getContext('2d');
-  let W,H,pts=[];
-  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
-  resize();window.addEventListener('resize',resize);
-  for(let i=0;i<70;i++)pts.push({x:Math.random()*100,y:Math.random()*100,vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12,r:Math.random()*1.4+.3,o:Math.random()*.35+.1});
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    pts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0||p.x>100)p.vx*=-1;
-      if(p.y<0||p.y>100)p.vy*=-1;
-      ctx.beginPath();ctx.arc(p.x/100*W,p.y/100*H,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(99,102,241,${p.o})`;ctx.fill();
-    });
-    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
-      const dx=(pts[i].x-pts[j].x)/100*W,dy=(pts[i].y-pts[j].y)/100*H,d=Math.sqrt(dx*dx+dy*dy);
-      if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x/100*W,pts[i].y/100*H);ctx.lineTo(pts[j].x/100*W,pts[j].y/100*H);ctx.strokeStyle=`rgba(99,102,241,${.1*(1-d/110)})`;ctx.lineWidth=.5;ctx.stroke()}
+// ═══════════════════════ SCREEN / TAB ═══════════════════════
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function switchTab(btn, tpId){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tp').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(tpId).classList.add('on');
+  if(tpId==='tpHistory') loadHistory();
+  if(tpId==='tpPremium') loadPremiumPrefs();
+}
+function goAdmin(){show('adminScreen');loadAdmin()}
+function goBack(){show('dashScreen')}
+
+// ═══════════════════════ NOTIFY ═══════════════════════
+let _nt;
+function notify(msg, ok=true){
+  const el=document.getElementById('notif');
+  el.className = ok ? 'show' : 'show err';
+  document.getElementById('notifIcon').textContent = ok ? '✦' : '⚠';
+  document.getElementById('notifTxt').textContent = msg;
+  clearTimeout(_nt);
+  _nt = setTimeout(()=>el.classList.remove('show','err'), 3500);
+}
+
+// ═══════════════════════ API ═══════════════════════
+async function api(method, path, body){
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(_token ? {'Authorization': 'Bearer '+_token} : {})
     }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-let lang='uz',contractText='',chatHistory=[],selPlanKey='starter',lastResult=null;
-let userToken=localStorage.getItem('sh_token')||'';
-let isSub=!!userToken;
-
-const UI_TEXT={
-  uz:{pageTitle:"ShartnomAI — AI Shartnoma Tahlilchi",heroTag:"🤖 AI · Yuridik tahlil · O'zbek tili",heroTitle:"Shartnomangizni<br><span class='grad'>AI tahlil qiladi</span>",heroDesc:"Xavfli bandlar, majburiyatlar, muhim sanalar — 60 soniyada. Yurist yollamasdan.",stat1:"Tahlil vaqti",stat2:"Til",stat3:"Maxfiy",stat4:"Bepul demo",featT1:"Xavf tahlili",featS1:"Qizil/sariq/yashil",featT2:"Majburiyatlar",featS2:"Ikkala tomon",featT3:"Sanalar",featS3:"Muddatlar",featT4:"Chat rejimi",featS4:"Savol-javob",tokenHeading:"🔑 Obuna tokenini kiriting",tokenSubmit:"Kirish",tokenHintPrefix:"Token Telegram'dan keladi. Muammo:",tokOk:"✅ Muvaffaqiyatli! Cheksiz tahlil mumkin.",tokErr:"❌ Token noto'g'ri.",demoTextBefore:"Sizda",demoTextAfter:"ta bepul demo qoldi.",demoTextFull:"To'liq versiya:",langLabel:"Til:",orDiv:"yoki matn kiriting",analyzeBtnText:"Shartnomani Tahlil Qilish",loadingTitle:"AI tahlil qilmoqda...",loadingSub:"30–60 soniya kutib turing",stepText1:"Matn ajratilmoqda",stepText2:"Xavfli bandlar topilmoqda",stepText3:"Majburiyatlar tahlil qilinmoqda",stepText4:"Hisobot tayyorlanmoqda",riskHead:"Xavfli bandlar",obligHead:"Majburiyatlar",datesHead:"Muhim sanalar",recHead:"Umumiy tavsiya",newContractBtn:"↩ Yangi shartnoma",copyBtn:"📋 Nusxa olish",chatToggleBtn:"💬 Savol so'rash",chatHead:"💬 Shartnoma haqida savol bering",chatInputPlaceholder:"Savolingizni yozing...",footerLine1:"ShartnomAI — yuridik maslahat emas. Muhim qarorlar uchun yuristga murojaat qiling.",footerLine2:"Hujjatlaringiz serverda saqlanmaydi. To'lov va savollar:",uploadTitle:"PDF yoki TXT faylni tashlang",uploadSub:"yoki bosib faylni tanlang · Maksimal 5MB",uploadChange:"O'zgartirish",fileSizeError:"Fayl hajmi 5MB dan oshmasligi kerak.",pdfReadError:"PDF o'qishda xatolik. Matnni kiriting.",emptyInputError:"Shartnoma faylini yuklang yoki matnni kiriting.",invalidTokenError:"Token noto'g'ri. Telegramga murojaat qiling.",noRisks:"Sezilarli xavfli band topilmadi.",party1:"Tomon 1",party2:"Tomon 2",noDates:"Aniq sana topilmadi.",recommendation:"Tavsiya",copySuccess:"✅ Nusxa olindi!",reportTitle:"SHARTNOMA TAHLILI — ShartnomAI",reportVerdict:"VERDIKT",reportRisks:"XAVFLI BANDLAR",reportRecommendation:"TAVSIYA",chatErrorPrefix:"Xatolik:"},
-  ru:{pageTitle:"ShartnomAI — AI Анализ договоров",heroTag:"🤖 AI · Юридический анализ · Русский",heroTitle:"Ваш договор<br><span class='grad'>анализирует AI</span>",heroDesc:"Риски, обязательства и важные даты — за 60 секунд. Без найма юриста.",stat1:"Время анализа",stat2:"Языки",stat3:"Конфиденциально",stat4:"Бесплатные демо",featT1:"Анализ рисков",featS1:"Красный/желтый/зеленый",featT2:"Обязательства",featS2:"Обе стороны",featT3:"Даты",featS3:"Сроки",featT4:"Чат-режим",featS4:"Вопрос-ответ",tokenHeading:"🔑 Введите токен подписки",tokenSubmit:"Войти",tokenHintPrefix:"Токен приходит из Telegram. Вопросы:",tokOk:"✅ Успешно! Доступен безлимитный анализ.",tokErr:"❌ Неверный токен.",demoTextBefore:"У вас осталось",demoTextAfter:"бесплатных демо.",demoTextFull:"Полная версия:",langLabel:"Язык:",orDiv:"или вставьте текст",analyzeBtnText:"Анализировать договор",loadingTitle:"AI анализирует...",loadingSub:"Подождите 30–60 секунд",stepText1:"Извлекается текст",stepText2:"Ищутся рискованные пункты",stepText3:"Анализируются обязательства",stepText4:"Готовится отчет",riskHead:"Рискованные пункты",obligHead:"Обязательства",datesHead:"Важные даты",recHead:"Общая рекомендация",newContractBtn:"↩ Новый договор",copyBtn:"📋 Копировать",chatToggleBtn:"💬 Задать вопрос",chatHead:"💬 Задайте вопрос о договоре",chatInputPlaceholder:"Напишите ваш вопрос...",footerLine1:"ShartnomAI — это не юридическая консультация. Для важных решений обратитесь к юристу.",footerLine2:"Ваши документы не хранятся на сервере. Оплата и вопросы:",uploadTitle:"Перетащите PDF или TXT файл",uploadSub:"или нажмите, чтобы выбрать файл · Максимум 5MB",uploadChange:"Изменить",fileSizeError:"Размер файла не должен превышать 5MB.",pdfReadError:"Ошибка чтения PDF. Вставьте текст вручную.",emptyInputError:"Загрузите договор или вставьте текст.",invalidTokenError:"Токен неверный. Напишите в Telegram.",noRisks:"Существенных рисков не найдено.",party1:"Сторона 1",party2:"Сторона 2",noDates:"Точные даты не найдены.",recommendation:"Рекомендация",copySuccess:"✅ Скопировано!",reportTitle:"АНАЛИЗ ДОГОВОРА — ShartnomAI",reportVerdict:"ВЕРДИКТ",reportRisks:"РИСКОВАННЫЕ ПУНКТЫ",reportRecommendation:"РЕКОМЕНДАЦИЯ",chatErrorPrefix:"Ошибка:"},
-  en:{pageTitle:"ShartnomAI — AI Contract Analyzer",heroTag:"🤖 AI · Legal Analysis · English",heroTitle:"Your contract<br><span class='grad'>analyzed by AI</span>",heroDesc:"Risky clauses, obligations, and key dates in 60 seconds. No lawyer hiring needed.",stat1:"Analysis Time",stat2:"Languages",stat3:"Confidential",stat4:"Free Demos",featT1:"Risk Analysis",featS1:"Red/yellow/green",featT2:"Obligations",featS2:"Both parties",featT3:"Dates",featS3:"Deadlines",featT4:"Chat Mode",featS4:"Q&A",tokenHeading:"🔑 Enter subscription token",tokenSubmit:"Enter",tokenHintPrefix:"Token comes from Telegram. Support:",tokOk:"✅ Success! Unlimited analysis enabled.",tokErr:"❌ Invalid token.",demoTextBefore:"You have",demoTextAfter:"free demos left.",demoTextFull:"Full version:",langLabel:"Language:",orDiv:"or paste text",analyzeBtnText:"Analyze Contract",loadingTitle:"AI is analyzing...",loadingSub:"Please wait 30–60 seconds",stepText1:"Extracting text",stepText2:"Finding risky clauses",stepText3:"Analyzing obligations",stepText4:"Preparing report",riskHead:"Risky Clauses",obligHead:"Obligations",datesHead:"Important Dates",recHead:"General Recommendation",newContractBtn:"↩ New Contract",copyBtn:"📋 Copy Report",chatToggleBtn:"💬 Ask a Question",chatHead:"💬 Ask about this contract",chatInputPlaceholder:"Type your question...",footerLine1:"ShartnomAI is not legal advice. For important decisions, consult a lawyer.",footerLine2:"Your documents are not stored on the server. Payment and questions:",uploadTitle:"Drop PDF or TXT file",uploadSub:"or click to select a file · Maximum 5MB",uploadChange:"Change",fileSizeError:"File size must not exceed 5MB.",pdfReadError:"Failed to read PDF. Please paste text manually.",emptyInputError:"Upload a contract file or paste text.",invalidTokenError:"Invalid token. Contact us on Telegram.",noRisks:"No significant risky clauses found.",party1:"Party 1",party2:"Party 2",noDates:"No specific dates found.",recommendation:"Recommendation",copySuccess:"✅ Copied!",reportTitle:"CONTRACT ANALYSIS — ShartnomAI",reportVerdict:"VERDICT",reportRisks:"RISKY CLAUSES",reportRecommendation:"RECOMMENDATION",chatErrorPrefix:"Error:"}
-};
-
-function t(key){return (UI_TEXT[lang]&&UI_TEXT[lang][key])||UI_TEXT.uz[key]||key}
-
-function renderUploadEmpty(){
-  const z=document.getElementById('uploadZone');
-  z.innerHTML=`<input type="file" class="upload-input" id="fileInput" accept=".pdf,.txt" onchange="handleFile(event)"><div class="upload-ico">📄</div><div class="upload-title" id="uploadTitle">${t('uploadTitle')}</div><div class="upload-sub" id="uploadSub">${t('uploadSub')}</div>`;
+  };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if(res.status===401){ doLogout(); throw new Error('Sessiya tugadi'); }
+  if(res.status===429){ throw new Error('Juda ko\'p so\'rov. Biroz kuting.'); }
+  const data = await res.json();
+  return {ok: res.ok, data, status: res.status};
 }
 
-function applyTranslations(){
-  document.documentElement.lang=lang;
-  document.title=t('pageTitle');
-  const ids=['heroTag','heroDesc','stat1','stat2','stat3','stat4','featT1','featS1','featT2','featS2','featT3','featS3','featT4','featS4','tokenHeading','tokenSubmit','tokOk','tokErr','demoTextBefore','demoTextAfter','demoTextFull','langLabel','orDiv','analyzeBtnText','loadingTitle','loadingSub','stepText1','stepText2','stepText3','stepText4','riskHead','obligHead','datesHead','recHead','newContractBtn','copyBtn','chatToggleBtn','chatHead','footerLine1','footerLine2'];
-  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
-  const heroTitle=document.getElementById('heroTitle');if(heroTitle)heroTitle.innerHTML=t('heroTitle');
-  const tokenHint=document.getElementById('tokenHint');if(tokenHint)tokenHint.innerHTML=`${t('tokenHintPrefix')} <a id="tgHint" href="${TG_LINK}">@Mluhammadali</a>`;
-  const paste=document.getElementById('pasteArea');
-  if(paste)paste.placeholder=(lang==='uz'?"Bu yerga shartnoma matnini nusxalab joylashtiring...":lang==='ru'?"Вставьте сюда текст договора...":"Paste contract text here...");
-  const chatIn=document.getElementById('chatIn');if(chatIn)chatIn.placeholder=t('chatInputPlaceholder');
-  if(!contractText&&!document.getElementById('uploadZone').classList.contains('has-file'))renderUploadEmpty();
+// ═══════════════════════ LOGIN / LOGOUT ═══════════════════════
+async function doLogin(){
+  const login = document.getElementById('loginInp').value.trim();
+  const pass  = document.getElementById('passInp').value.trim();
+  if(!login||!pass) return notify('Login va parolni kiriting', false);
+
+  const btn = document.getElementById('loginBtn');
+  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
+
+  try {
+    const {ok, data} = await api('POST','/api/auth/login',{login, password:pass});
+    if(ok && data.status==='success'){
+      _token=data.token; _uid=data.user_id; _role=data.role;
+      _premium=!!data.premium;
+      sessionStorage.setItem('hs_t', _token);
+      sessionStorage.setItem('hs_u', _uid);
+      sessionStorage.setItem('hs_r', _role);
+      sessionStorage.setItem('hs_p', _premium ? '1' : '0');
+      sessionStorage.setItem('hs_l', login);
+      notify('Tizimga kirdingiz ✦');
+      init();
+    } else {
+      notify(data.message||'Login yoki parol xato', false);
+    }
+  } catch(e){ notify(e.message||'Ulanishda xatolik', false); }
+
+  btn.classList.remove('ld'); btn.textContent='TIZIMGA KIRISH';
 }
 
-function getUsed(){return parseInt(localStorage.getItem('sh_used')||'0')}
-function incUsed(){localStorage.setItem('sh_used',getUsed()+1);updateUI()}
-function updateUI(){
-  const rem=MAX_FREE-getUsed();
-  const banner=document.getElementById('demoBanner');
-  const cnt=document.getElementById('demoCount');
-  if(isSub){if(banner)banner.style.display='none';return}
-  if(cnt)cnt.textContent=Math.max(0,rem);
-}
-updateUI();
-
-function showTokenSection(){const s=document.getElementById('tokenSection');s.style.display=s.style.display==='block'?'none':'block'}
-function verifyToken(){
-  const v=document.getElementById('tokenInput').value.trim().toUpperCase();
-  const ok=document.getElementById('tokOk'),err=document.getElementById('tokErr');
-  ok.style.display='none';err.style.display='none';
-  if(v.startsWith('SH-')&&v.length>=10){
-    localStorage.setItem('sh_token',v);userToken=v;isSub=true;
-    ok.style.display='flex';updateUI();
-    setTimeout(()=>document.getElementById('tokenSection').style.display='none',1500);
-  }else err.style.display='block';
-}
-function setLang(l,btn){
-  lang=l;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  applyTranslations();
-}
-function updateCC(){const l=document.getElementById('pasteArea').value.length;document.getElementById('charCount').textContent=l.toLocaleString()+' / 12,000'}
-function showError(m){const b=document.getElementById('errorBox');b.innerHTML='⚠️ '+m;b.classList.add('show')}
-function hideError(){document.getElementById('errorBox').classList.remove('show')}
-
-async function extractPdf(file){
-  return new Promise((res,rej)=>{
-    const reader=new FileReader();
-    reader.onload=async e=>{
-      try{
-        const arr=new Uint8Array(e.target.result);
-        const pdf=await pdfjsLib.getDocument(arr).promise;
-        let txt='';
-        for(let i=1;i<=Math.min(pdf.numPages,15);i++){
-          const pg=await pdf.getPage(i);
-          const ct=await pg.getTextContent();
-          txt+=ct.items.map(s=>s.str).join(' ')+'\n';
-        }
-        res(txt.trim());
-      }catch(e){rej(e)}
-    };
-    reader.readAsArrayBuffer(file);
-  });
+function doLogout(){
+  sessionStorage.clear(); _token=null; _uid=null; _role=null;
+  _premium=false;
+  document.getElementById('adminBtn').style.display='none';
+  show('loginScreen');
+  notify('Tizimdan chiqdingiz');
 }
 
-function handleFile(event){
-  const file=event.target.files[0];if(!file)return;
-  if(file.size>5*1024*1024){showError(t('fileSizeError'));return}
-  const z=document.getElementById('uploadZone');
-  z.classList.add('has-file');
-  z.innerHTML=`<div class="file-info"><div class="file-ico-wrap">📄</div><div><div class="file-name">${file.name}</div><div class="file-size">${(file.size/1024).toFixed(0)} KB</div></div><span class="file-change" onclick="resetFile()">${t('uploadChange')}</span></div>`;
-  if(file.name.endsWith('.pdf')){
-    extractPdf(file).then(t=>{contractText=t;document.getElementById('pasteArea').value=''}).catch(()=>showError(t('pdfReadError')));
-  }else{
-    const r=new FileReader();
-    r.onload=e=>{contractText=e.target.result;document.getElementById('pasteArea').value=''};
-    r.readAsText(file);
+// ═══════════════════════ LOAD DATA ═══════════════════════
+async function loadData(){
+  try {
+    const [s, u] = await Promise.all([api('GET','/api/stats'), api('GET','/api/users')]);
+    if(s.ok){
+      const d=s.data.data;
+      document.getElementById('stTotal').textContent = d.total_accounts;
+      document.getElementById('stSucc').textContent  = d.last_success;
+      document.getElementById('stLast').textContent  = d.last_success+'/'+d.last_total;
+      if(typeof d.is_premium === 'boolean'){
+        _premium = d.is_premium;
+        sessionStorage.setItem('hs_p', _premium ? '1' : '0');
+        updatePremiumBadge(d.premium_until || null);
+      }
+    }
+    if(u.ok) renderAccs(u.data.users||[]);
+  } catch(e){ notify('Ma\'lumot yuklashda xatolik', false); }
+}
+
+function updatePremiumBadge(untilIso){
+  const b = document.getElementById('premiumBadge');
+  const h = document.getElementById('premiumHint');
+  if(!b || !h) return;
+  if(_premium){
+    b.className='pbadge on';
+    b.textContent='PREMIUM';
+    h.textContent = untilIso ? `Faol. Amal qilish muddati: ${new Date(untilIso).toLocaleString('uz-UZ')}` : 'Faol premium rejim';
+  } else {
+    b.className='pbadge off';
+    b.textContent='FREE';
+    h.textContent='Faol emas — jadval bron funksiyasi bloklangan';
   }
 }
 
-function resetFile(){
-  contractText='';
-  const z=document.getElementById('uploadZone');
-  z.classList.remove('has-file');
-  renderUploadEmpty();
-}
-
-const dz=document.getElementById('uploadZone');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
-dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f]}})});
-
-function setStep(n){for(let i=1;i<=4;i++){const el=document.getElementById('step'+i);el.classList.remove('active','done');if(i<n)el.classList.add('done');else if(i===n)el.classList.add('active')}}
-
-const LP={
-  uz:{sys:`Sen tajribali O'zbek yuridik tahlilchisan. Faqat JSON formatda javob ber:\n{"summary":"2-3 gapda xulosa","verdict":"safe|caution|risk","verdictText":"qisqa xulosa","risks":[{"level":"high|medium|low","title":"nomi","band":"iqtibos","explanation":"tushuntirish"}],"obligations":{"party1":{"name":"tomon 1","items":["..."]},"party2":{"name":"tomon 2","items":["..."]}},"dates":[{"emoji":"📅","label":"nomi","value":"qiymat"}],"recommendation":"tavsiya","chatQuestions":["savol 1?","savol 2?","savol 3?"]}`,pfx:"Shartnomani tahlil qil:\n\n",chat:"Sen shartnoma tahlilchisan. Qisqa, aniq, o'zbek tilida javob ber."},
-  ru:{sys:`Ты юридический аналитик. Отвечай ТОЛЬКО в JSON:\n{"summary":"резюме","verdict":"safe|caution|risk","verdictText":"вердикт","risks":[{"level":"high|medium|low","title":"название","band":"цитата","explanation":"объяснение"}],"obligations":{"party1":{"name":"сторона 1","items":["..."]},"party2":{"name":"сторона 2","items":["..."]}},"dates":[{"emoji":"📅","label":"название","value":"значение"}],"recommendation":"рекомендация","chatQuestions":["вопрос 1?","вопрос 2?","вопрос 3?"]}`,pfx:"Проанализируй договор:\n\n",chat:"Ты аналитик договоров. Отвечай кратко."},
-  en:{sys:`You are a contract analyst. Reply ONLY in JSON:\n{"summary":"summary","verdict":"safe|caution|risk","verdictText":"verdict","risks":[{"level":"high|medium|low","title":"name","band":"quote","explanation":"why risky"}],"obligations":{"party1":{"name":"party 1","items":["..."]},"party2":{"name":"party 2","items":["..."]}},"dates":[{"emoji":"📅","label":"name","value":"value"}],"recommendation":"recommendation","chatQuestions":["question 1?","question 2?","question 3?"]}`,pfx:"Analyze this contract:\n\n",chat:"You are a contract analyst. Answer briefly."}
-};
-
-async function callAPI(payload){
-  const headers={'Content-Type':'application/json'};
-  if(userToken)headers['x-user-token']=userToken;
-  const res=await fetch(API_ENDPOINT,{method:'POST',headers,body:JSON.stringify(payload)});
-  const data=await res.json();
-  if(data.error==='token_invalid')throw new Error(t('invalidTokenError'));
-  if(!res.ok)throw new Error(data.message||'Server xatoligi: '+res.status);
-  return data;
-}
-
-async function analyze(){
-  hideError();
-  const paste=document.getElementById('pasteArea').value.trim();
-  const text=contractText||paste;
-  if(!text||text.length<50){showError(t('emptyInputError'));return}
-  if(!isSub&&getUsed()>=MAX_FREE){document.getElementById('paywallModal').classList.add('show');return}
-  document.getElementById('analyzeBtn').disabled=true;
-  document.getElementById('loadingState').classList.add('show');
-  document.getElementById('resultsSection').classList.remove('show');
-  setStep(1);await delay(700);setStep(2);
-  const p=LP[lang];
+async function loadPremiumStatus(){
   try{
-    const data=await callAPI({system:p.sys,messages:[{role:'user',content:p.pfx+text.slice(0,12000)}],maxTokens:2500});
-    setStep(3);await delay(500);
-    const raw=data.content[0].text;
-    let r;try{r=JSON.parse(raw.replace(/```json|```/g,'').trim())}catch(e){throw new Error("AI javobi formatsiz. Qayta urinib ko'ring.")}
-    setStep(4);await delay(300);
-    if(!isSub)incUsed();
-    chatHistory=[{role:'user',content:p.pfx+text.slice(0,12000)},{role:'assistant',content:raw}];
-    lastResult=r;
-    renderResults(r);
-  }catch(err){
-    document.getElementById('loadingState').classList.remove('show');
-    document.getElementById('analyzeBtn').disabled=false;
-    showError(err.message);
+    const {ok, data} = await api('GET','/api/premium/status');
+    if(ok && data.status==='success'){
+      _premium = !!data.data.is_premium;
+      sessionStorage.setItem('hs_p', _premium ? '1' : '0');
+      updatePremiumBadge(data.data.premium_until || null);
+    }
+  }catch(e){}
+}
+
+async function activatePremium(){
+  const code = document.getElementById('premiumCode').value.trim();
+  const btn = document.getElementById('premiumBtn');
+  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
+  try{
+    const {ok, data} = await api('POST','/api/premium/activate',{code});
+    if(ok){
+      _premium = true;
+      sessionStorage.setItem('hs_p','1');
+      notify(data.message || 'Premium yoqildi');
+      loadPremiumStatus();
+    } else notify(data.message || 'Premium aktivatsiya xatoligi', false);
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='PREMIUMNI YOQISH';
+}
+
+async function loadPremiumPrefs(){
+  try{
+    const {ok, data} = await api('GET','/api/schedule/preferences');
+    if(!ok) return;
+    const p = data.data || {};
+    document.getElementById('googleEmail').value = p.google_email || '';
+    document.getElementById('tzName').value = p.timezone || 'Asia/Tashkent';
+    document.getElementById('prefCourse').value = p.preferred_course || '';
+    document.getElementById('prefRoom').value = p.preferred_room || '';
+    document.getElementById('prefDays').value = p.preferred_days || '';
+    document.getElementById('prefTime').value = p.preferred_time_range || '';
+    document.getElementById('prefNotes').value = p.notes || '';
+  }catch(e){}
+}
+
+async function savePremiumPrefs(){
+  const btn = document.getElementById('prefBtn');
+  btn.classList.add('ld'); btn.textContent='SAQLANMOQDA...';
+  const payload = {
+    google_email: document.getElementById('googleEmail').value.trim(),
+    timezone: document.getElementById('tzName').value.trim() || 'Asia/Tashkent',
+    preferred_course: document.getElementById('prefCourse').value.trim(),
+    preferred_room: document.getElementById('prefRoom').value.trim(),
+    preferred_days: document.getElementById('prefDays').value.trim(),
+    preferred_time_range: document.getElementById('prefTime').value.trim(),
+    notes: document.getElementById('prefNotes').value.trim(),
+  };
+  try{
+    const {ok, data} = await api('POST','/api/schedule/preferences', payload);
+    if(ok) notify(data.message || 'Saqlandi');
+    else notify(data.message || 'Saqlashda xatolik', false);
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='SOZLAMANI SAQLASH';
+}
+
+async function buildBookingPlan(){
+  const btn = document.getElementById('planBtn');
+  const out = document.getElementById('planOut');
+  let schedule = [];
+  try{
+    schedule = JSON.parse(document.getElementById('scheduleInput').value || '[]');
+    if(!Array.isArray(schedule)) throw new Error('schedule massiv bo\'lishi kerak');
+  }catch(e){
+    notify('Schedule JSON noto\'g\'ri formatda', false);
+    return;
+  }
+  btn.classList.add('ld'); btn.textContent='TAHLIL...';
+  out.innerHTML='<div class="hint">Slotlar qidirilmoqda...</div>';
+  try{
+    const {ok, data} = await api('POST','/api/schedule/plan',{schedule});
+    if(ok && data.status==='success'){
+      const d = data.data || {};
+      const rows = d.suggested || [];
+      if(!rows.length){
+        out.innerHTML = `<div class="hint">${esc(d.message || 'Mos slot topilmadi')}</div>`;
+      } else {
+        out.innerHTML = rows.map(r=>`<div class="plan-item"><span>${esc(r.course || '-')} • ${esc(r.room || '-')}</span><span>${esc(r.day || '')} ${esc(r.time || '')}</span></div>`).join('');
+      }
+    } else {
+      out.innerHTML = `<div class="hint">${esc((data && data.message) || 'Xatolik')}</div>`;
+    }
+  }catch(e){
+    out.innerHTML = `<div class="hint">${esc(e.message || 'Xatolik')}</div>`;
+  }
+  btn.classList.remove('ld'); btn.textContent='MOS SLOTLARNI TOPISH';
+}
+
+function renderAccs(users){
+  const el = document.getElementById('accList');
+  if(!users.length){
+    el.innerHTML='<div class="empty">Hali akkaunt qo\'shilmagan</div>';
+    return;
+  }
+  el.innerHTML = users.map((u,i)=>{
+    const act = u.bearer_token && u.bearer_token!=='NO_TOKEN';
+    return `<div class="acc ${act?'yes':'no'}" style="animation-delay:${i*.04}s">
+      <div class="aleft">
+        <div class="aemail">${esc(u.email)}</div>
+        <div class="abadge ${act?'on':'off'}">
+          <div class="dot ${act?'pulse':''}"></div>
+          ${act?'AKTIV TOKEN':'TOKEN YO\'Q'}
+        </div>
+      </div>
+      <button class="btnD" onclick="delAcc(${u.id})">O'CHIRISH</button>
+    </div>`;
+  }).join('');
+}
+
+async function loadHistory(){
+  const el = document.getElementById('histList');
+  try {
+    const {ok, data} = await api('GET','/api/history');
+    if(ok && data.logs && data.logs.length){
+      el.innerHTML = data.logs.map(l=>{
+        const rate = l.total_count>0 ? Math.round(l.success_count/l.total_count*100) : 0;
+        const dt   = new Date(l.scanned_at).toLocaleString('uz-UZ');
+        const cl   = rate===100?'g':rate>50?'c':'r';
+        return `<div class="hist-item">
+          <div class="hist-time">${dt}</div>
+          <div class="hist-res">
+            <span class="sval ${cl}" style="font-size:18px">${l.success_count}/${l.total_count}</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--mute)">${l.duration}s • ${rate}%</span>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      el.innerHTML='<div class="empty">Tarix mavjud emas</div>';
+    }
+  } catch(e){ el.innerHTML='<div class="empty">Xatolik</div>'; }
+}
+
+// ═══════════════════════ CRUD ═══════════════════════
+async function addAcc(){
+  const email = document.getElementById('newEmail').value.trim();
+  const pass  = document.getElementById('newPass').value.trim();
+  if(!email||!pass) return notify('Maydonlarni to\'ldiring', false);
+  if(!email.includes('@')) return notify('Email to\'g\'ri emas', false);
+
+  const btn = document.getElementById('addBtn');
+  btn.classList.add('ld'); btn.textContent='QO\'SHILMOQDA...';
+
+  try {
+    const {ok, data} = await api('POST','/api/users/add',{email, password:pass});
+    if(ok){
+      notify('Akkaunt qo\'shildi ✦');
+      document.getElementById('newEmail').value='';
+      document.getElementById('newPass').value='';
+      loadData();
+    } else {
+      notify(data.message||'Xatolik yuz berdi', false);
+    }
+  } catch(e){ notify(e.message||'Xatolik', false); }
+
+  btn.classList.remove('ld'); btn.textContent="RO'YXATGA QO'SHISH";
+}
+
+async function delAcc(id){
+  if(!confirm('Akkauntni o\'chirishni tasdiqlaysizmi?')) return;
+  try {
+    const {ok} = await api('POST','/api/users/delete',{account_id:id});
+    if(ok){notify('Akkaunt o\'chirildi');loadData();}
+  } catch(e){ notify('O\'chirishda xatolik', false); }
+}
+
+// ═══════════════════════ SCAN ═══════════════════════
+function startScan(){
+  if(tg && tg.showScanQrPopup){
+    tg.showScanQrPopup({text:'Hero QR kodini skanerlang'}, async url=>{
+      if(!url) return false;
+      tg.closeScanQrPopup();
+      await execScan(url);
+      return true;
+    });
+  } else {
+    // Fallback for browser testing
+    const url = prompt('QR URL manzilini kiriting:');
+    if(url) execScan(url);
   }
 }
 
-function renderResults(r){
-  document.getElementById('loadingState').classList.remove('show');
-  document.getElementById('analyzeBtn').disabled=false;
-  const vmap={safe:['vs','ps','✅'],caution:['vc','pc','⚠️'],risk:['vr','pr','🚨']};
-  const [vcls,pcls,ico]=vmap[r.verdict]||vmap.caution;
-  document.getElementById('verdictCard').innerHTML=`<div class="verdict-card ${vcls}"><div class="vtop"><div class="vico">${ico}</div><div><div class="vh">${lang==='uz'?'Tahlil natijasi':lang==='ru'?'Результат анализа':'Analysis result'}</div><div class="vp">${r.summary}</div><span class="vpill ${pcls}">${ico} ${r.verdictText}</span></div></div></div>`;
-  document.getElementById('riskList').innerHTML=(r.risks||[]).map((rk,i)=>{
-    const lmap={high:['rh','rbh','YUQORI'],medium:['rm','rbm',"O'RTA"],low:['rl','rbl','PAST']};
-    const [rcls,bcls,lbl]=lmap[rk.level]||lmap.medium;
-    return `<div class="risk-card ${rcls}" style="animation-delay:${i*.08}s"><div class="risk-top"><span class="rbadge ${bcls}">${lbl}</span><span class="rtitle">${rk.title}</span></div>${rk.band?`<div class="rquote">"${rk.band}"</div>`:''}<div class="rexp">${rk.explanation}</div></div>`;
-  }).join('')||`<p style="color:var(--text3);font-size:13px;padding:.5rem 0">${t('noRisks')}</p>`;
-  const ob=r.obligations||{},p1=ob.party1||{},p2=ob.party2||{};
-  document.getElementById('obligGrid').innerHTML=`<div class="oblig-box"><div class="oblig-title">👤 ${p1.name||t('party1')}</div>${(p1.items||[]).map(i=>`<div class="oblig-item"><div class="oblig-dot"></div>${i}</div>`).join('')}</div><div class="oblig-box"><div class="oblig-title">👤 ${p2.name||t('party2')}</div>${(p2.items||[]).map(i=>`<div class="oblig-item"><div class="oblig-dot"></div>${i}</div>`).join('')}</div>`;
-  document.getElementById('datesList').innerHTML=(r.dates||[]).map(d=>`<div class="date-item"><span class="date-emoji">${d.emoji||'📅'}</span><div class="date-label">${d.label}</div><div class="date-val">${d.value}</div></div>`).join('')||`<p style="color:var(--text3);font-size:13px">${t('noDates')}</p>`;
-  const rmap={safe:'rec-safe',caution:'rec-caution',risk:'rec-risk'};
-  document.getElementById('recBox').innerHTML=`<div class="rec-box ${rmap[r.verdict]||rmap.caution}"><div class="rec-title">${vmap[r.verdict]?.[2]||'⚠️'} ${t('recommendation')}</div><div class="rec-text">${r.recommendation}</div></div>`;
-  document.getElementById('sampleQs').innerHTML=(r.chatQuestions||[]).map(q=>`<button class="sample-q" onclick="askQ(this)">${q}</button>`).join('');
-  document.getElementById('resultsSection').classList.add('show');
-  document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+async function execScan(url){
+  const btn = document.getElementById('scanBtn');
+  btn.classList.add('scanning');
+  btn.innerHTML='<div class="spin"></div> SKANLANMOQDA...';
+  notify('Davomat yuborilmoqda...');
+
+  try {
+    const {ok, data} = await api('POST','/api/scan',{url});
+    if(ok && data.status==='success'){
+      showResult(data);
+      loadData();
+    } else {
+      notify(data.message||'Skan xatoligi', false);
+    }
+  } catch(e){ notify(e.message||'Ulanishda xatolik', false); }
+
+  btn.classList.remove('scanning');
+  btn.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>
+    <line x1="12" y1="2" x2="12" y2="22" opacity=".28"/>
+    <line x1="2" y1="12" x2="22" y2="12" opacity=".28"/>
+    <path d="M12 12 L19 5" stroke-width="2" stroke-dasharray="2 2"/>
+  </svg>DAVOMATGA KIRITISH`;
 }
 
-function resetAll(){
-  ['resultsSection','chatSection','loadingState'].forEach(id=>document.getElementById(id).classList.remove('show'));
-  document.getElementById('pasteArea').value='';
-  contractText='';chatHistory=[];lastResult=null;
-  resetFile();hideError();
-  document.getElementById('analyzeBtn').disabled=false;
-  window.scrollTo({top:0,behavior:'smooth'});
+function showResult(data){
+  const failed = data.total - data.success;
+  document.getElementById('rsum').innerHTML=`
+    <div class="rbox"><div class="rnum g">${data.success}</div><div class="rlabel">MUVAFFAQ</div></div>
+    <div class="rbox"><div class="rnum r">${failed}</div><div class="rlabel">XATO</div></div>
+    <div class="rbox"><div class="rnum c">${data.duration}s</div><div class="rlabel">VAQT</div></div>`;
+  document.getElementById('rlist').innerHTML = (data.report||[]).map(r=>`
+    <div class="ritem">
+      <span class="${r.ok?'ok':'fail'}">${r.ok?'✓':'✗'}</span>
+      <span class="remail">${esc(r.email)}</span>
+      ${!r.ok && r.reason ? `<span style="font-size:10px;color:var(--mute)">${esc(r.reason)}</span>` : ''}
+    </div>`).join('');
+  document.getElementById('modal').classList.add('on');
 }
 
-function copyReport(){
-  if(!lastResult)return;
-  const r=lastResult;
-  let rep=`${t('reportTitle')}\n${'─'.repeat(40)}\n\n${r.summary}\n${t('reportVerdict')}: ${r.verdictText}\n\n${t('reportRisks')}:\n`;
-  (r.risks||[]).forEach(rk=>rep+=`\n[${rk.level.toUpperCase()}] ${rk.title}\n${rk.explanation}\n`);
-  rep+=`\n${t('reportRecommendation')}:\n${r.recommendation}`;
-  navigator.clipboard.writeText(rep).then(()=>{const btn=event.currentTarget;const old=btn.innerHTML;btn.innerHTML=t('copySuccess');setTimeout(()=>btn.innerHTML=old,2000)});
+function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+
+// ═══════════════════════ ADMIN ═══════════════════════
+async function loadAdmin(){
+  try {
+    const {ok, data} = await api('GET','/api/admin/all_data');
+    if(!ok) return notify('Ruxsat yo\'q', false);
+
+    const d = data.data;
+
+    document.getElementById('adminAccs').innerHTML = (d.accounts||[]).map(a=>`
+      <tr>
+        <td>${esc(a.tg_login)}</td>
+        <td>${esc(a.email)}</td>
+        <td style="color:var(--g)">● AKTIV</td>
+      </tr>`).join('') || '<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--mute)">Ma\'lumot yo\'q</td></tr>';
+
+    document.getElementById('adminLogs').innerHTML = (d.logs||[]).map(l=>{
+      const rate = l.total_count>0 ? Math.round(l.success_count/l.total_count*100) : 0;
+      const cl   = rate===100?'var(--g)':rate>50?'var(--c)':'var(--r)';
+      const dt   = new Date(l.scanned_at).toLocaleString('uz-UZ');
+      return `<tr>
+        <td>${esc(l.login)}</td>
+        <td style="color:${cl}">${l.success_count}/${l.total_count} (${rate}%)</td>
+        <td>${l.duration}s</td>
+        <td style="font-size:10px">${dt}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="4" style="text-align:center;padding:14px;color:var(--mute)">Log yo\'q</td></tr>';
+
+    document.getElementById('adminCounts').innerHTML = (d.user_counts||[]).map(u=>`
+      <tr>
+        <td>${esc(u.login)}</td>
+        <td style="color:var(--c);font-family:'Orbitron',monospace">${u.account_count}</td>
+      </tr>`).join('') || '<tr><td colspan="2" style="text-align:center;padding:14px;color:var(--mute)">Ma\'lumot yo\'q</td></tr>';
+
+  } catch(e){ notify('Xatolik: '+e.message, false); }
 }
 
-function toggleChat(){document.getElementById('chatSection').classList.toggle('show')}
-function askQ(btn){document.getElementById('chatIn').value=btn.textContent;sendChat()}
-
-async function sendChat(){
-  const inp=document.getElementById('chatIn');
-  const msg=inp.value.trim();if(!msg)return;
-  inp.value='';
-  const msgs=document.getElementById('chatMsgs');
-  msgs.innerHTML+=`<div class="chat-msg user">${msg}</div>`;
-  chatHistory.push({role:'user',content:msg});
-  const t=document.createElement('div');t.className='chat-msg ai';t.textContent='...';
-  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
-  try{
-    const data=await callAPI({system:LP[lang].chat,messages:chatHistory,maxTokens:600});
-    const reply=data.content[0].text;
-    chatHistory.push({role:'assistant',content:reply});
-    t.textContent=reply;msgs.scrollTop=msgs.scrollHeight;
-  }catch(e){t.textContent=t('chatErrorPrefix')+' '+e.message}
+// ═══════════════════════ UTILS ═══════════════════════
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function selPlan(el,plan){document.querySelectorAll('.modal-plan').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');selPlanKey=plan}
-function goToPay(){window.open(TG_LINK,'_blank');closeModal()}
-function closeModal(){document.getElementById('paywallModal').classList.remove('show')}
-function delay(ms){return new Promise(r=>setTimeout(r,ms))}
-function toggleFaq(btn){
-  const item=btn.closest('.faq-item');
-  if(!item)return;
-  item.classList.toggle('open');
-}
-function initReveal(){
-  const els=[...document.querySelectorAll('.reveal')];
-  if(!els.length)return;
-  const io=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')});
-  },{threshold:.12});
-  els.forEach(el=>io.observe(el));
-}
-initReveal();
-setLang('uz',document.querySelector(".lang-btn.active"));
+// Enter key
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && document.getElementById('loginScreen').classList.contains('on')) doLogin();
+});
+
+// Boot
+init();
 </script>
 </body>
 </html>
