@@ -3,7 +3,7 @@ import os
 import logging
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton, Message
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton, Message, LabeledPrice, PreCheckoutQuery
 from aiogram.filters import Command
 import database as db
 
@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+PROVIDER_TOKEN = os.getenv("PROVIDER_TOKEN", "") # Click/Payme token
 WEBAPP_URL = os.getenv("WEBAPP_URL", "")
 PORT = int(os.getenv("PORT", 10000))
 
@@ -18,13 +19,10 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 # --- BOT QISMI ---
-
 @dp.message(Command("start"))
 async def start_cmd(m: Message):
     try:
-        # Bazadan ma'lumot olish
         u, p, ends_at = await db.get_or_create_user(m.from_user.id)
-        
         kb = [[InlineKeyboardButton(text="📱 Panelga Kirish", web_app=WebAppInfo(url=WEBAPP_URL))]]
         text = (
             "👋 Assalomu alaykum! Hero Scanner PRO botiga xush kelibsiz.\n\n"
@@ -36,37 +34,72 @@ async def start_cmd(m: Message):
         logger.error(f"Start xatosi: {e}")
         await m.answer("⚠️ Baza bilan ulanishda xatolik yuz berdi. Birozdan so'ng urinib ko'ring.")
 
-# --- WEB SERVER QISMI ---
+@dp.message(Command("premium"))
+async def buy_premium(m: Message):
+    if not PROVIDER_TOKEN:
+        return await m.answer("To'lov tizimi hozircha ulanmagan.")
+    
+    await bot.send_invoice(
+        chat_id=m.chat.id,
+        title="💎 Hero Premium",
+        description="1 oylik Arvoh Davomat (Ghost Scan) va cheksiz imkoniyatlar.",
+        payload="premium_1_month",
+        provider_token=PROVIDER_TOKEN,
+        currency="UZS",
+        prices=[LabeledPrice(label="Premium Obuna", amount=5000000)] # 50,000 so'm (tiyinlarda)
+    )
 
+@dp.pre_checkout_query()
+async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+@dp.message(F.successful_payment)
+async def process_successful_payment(m: Message):
+    await db.set_premium(m.from_user.id)
+    await m.answer("🎉 Tabriklaymiz! To'lov muvaffaqiyatli o'tdi. Siz endi **Premium** foydalanuvchisiz! Mini App orqali Arvoh Davomatdan foydalanishingiz mumkin.")
+
+# --- WEB SERVER QISMI ---
 async def handle_index(request):
     try:
-        # GitHub'da scanner.html faylingiz asosiy papkada bo'lishi kerak
         with open('scanner.html', 'r', encoding='utf-8') as f:
             return web.Response(text=f.read(), content_type='text/html')
     except Exception:
         return web.Response(text="<h1>Scanner fayli topilmadi!</h1>", content_type='text/html')
 
+async def handle_ghost_scan(request):
+    try:
+        data = await request.json()
+        tg_id = data.get('telegram_id')
+        
+        if not tg_id:
+            return web.json_response({"status": "error", "message": "Foydalanuvchi aniqlanmadi!"})
+            
+        is_prem = await db.check_premium_by_tg(int(tg_id))
+        if not is_prem:
+            return web.json_response({"status": "error", "message": "Bu funksiya faqat Premium foydalanuvchilar uchun!"})
+            
+        return web.json_response({"status": "success", "message": "👻 So'rov yuborildi! 3 ta aktiv foydalanuvchi sizning xonangizda. Ular tasdiqlashi kutilmoqda..."})
+    except Exception as e:
+        return web.json_response({"status": "error", "message": f"Server xatosi: {e}"})
+
 app = web.Application()
 app.router.add_get('/', handle_index)
+app.router.add_post('/api/ghost_scan', handle_ghost_scan)
 
 # --- ASOSIY ISHGA TUSHIRISH ---
-
 async def main():
-    # 1. BAZANI ISHGA TUSHIRISH (Pollingdan oldin bo'lishi shart!)
     logger.info("Bazaga ulanishga harakat qilinmoqda...")
     await db.init_db()
     
-    # 2. WEB SERVERNI ISHGA TUSHIRISH
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', PORT)
     await site.start()
     logger.info(f"✅ Web server ishga tushdi: {PORT}")
     
-    # 3. BOTNI ISHGA TUSHIRISH
     logger.info("✅ Bot pollingni boshlamoqda...")
-    # Eski update'larni o'chirib yuborish (Conflict bermasligi uchun)
-    await bot.delete_webhook(drop_pending_updates=True)
+    # Eski update'larni va webhooklarni o'chiramiz:
+    await bot.delete_webhook(drop_pending_updates=True) 
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
