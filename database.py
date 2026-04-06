@@ -24,6 +24,9 @@ async def init_db():
                     is_premium BOOLEAN DEFAULT FALSE,
                     premium_until TIMESTAMP NULL,
                     google_email VARCHAR(200) NULL,
+                    google_refresh_token TEXT NULL,
+                    google_access_token TEXT NULL,
+                    google_token_expire TIMESTAMP NULL,
                     timezone VARCHAR(64) DEFAULT 'Asia/Tashkent',
                     created_at TIMESTAMP DEFAULT NOW()
                 );
@@ -63,10 +66,27 @@ async def init_db():
                     result_payload JSONB,
                     created_at TIMESTAMP DEFAULT NOW()
                 );
+                CREATE TABLE IF NOT EXISTS user_schedule_slots (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER REFERENCES app_users(id) ON DELETE CASCADE,
+                    course VARCHAR(160),
+                    room VARCHAR(120),
+                    day VARCHAR(32),
+                    start_min INTEGER,
+                    end_min INTEGER,
+                    teacher VARCHAR(160),
+                    group_name VARCHAR(120),
+                    source VARCHAR(32) DEFAULT 'manual',
+                    raw JSONB,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
             """)
             await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;")
             await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP NULL;")
             await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_email VARCHAR(200) NULL;")
+            await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_refresh_token TEXT NULL;")
+            await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_access_token TEXT NULL;")
+            await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_token_expire TIMESTAMP NULL;")
             await conn.execute("ALTER TABLE app_users ADD COLUMN IF NOT EXISTS timezone VARCHAR(64) DEFAULT 'Asia/Tashkent';")
         logger.info("✅ Database initialized successfully.")
     except Exception as e:
@@ -137,7 +157,7 @@ async def get_super_admin_data():
 async def get_user_profile(user_id):
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT id, telegram_id, login, is_premium, premium_until, google_email, timezone FROM app_users WHERE id=$1",
+            "SELECT id, telegram_id, login, is_premium, premium_until, google_email, google_refresh_token, google_access_token, google_token_expire, timezone FROM app_users WHERE id=$1",
             int(user_id),
         )
         return dict(row) if row else None
@@ -161,6 +181,28 @@ async def save_google_profile(user_id, google_email: str, tz_name: str = "Asia/T
         await conn.execute(
             "UPDATE app_users SET google_email=$2, timezone=$3 WHERE id=$1",
             int(user_id), google_email, tz_name
+        )
+
+
+async def save_google_tokens(user_id, refresh_token: str | None, access_token: str | None, expire_at):
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            UPDATE app_users
+            SET google_refresh_token = COALESCE($2, google_refresh_token),
+                google_access_token = COALESCE($3, google_access_token),
+                google_token_expire = $4
+            WHERE id = $1
+            """,
+            int(user_id), refresh_token, access_token, expire_at
+        )
+
+
+async def clear_google_tokens(user_id):
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE app_users SET google_refresh_token=NULL, google_access_token=NULL, google_token_expire=NULL WHERE id=$1",
+            int(user_id)
         )
 
 
@@ -189,3 +231,79 @@ async def save_booking_plan(user_id, request_payload, result_payload, status="pl
             "INSERT INTO booking_requests (user_id, status, source, request_payload, result_payload) VALUES ($1,$2,'manual',$3,$4)",
             int(user_id), status, json.dumps(request_payload), json.dumps(result_payload)
         )
+
+
+async def replace_user_schedule_slots(user_id, slots: list[dict], source: str = "manual"):
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute("DELETE FROM user_schedule_slots WHERE user_id=$1", int(user_id))
+            if not slots:
+                return
+            for s in slots:
+                await conn.execute(
+                    """
+                    INSERT INTO user_schedule_slots
+                    (user_id, course, room, day, start_min, end_min, teacher, group_name, source, raw)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                    """,
+                    int(user_id),
+                    s.get("course"),
+                    s.get("room"),
+                    s.get("day"),
+                    s.get("start_min"),
+                    s.get("end_min"),
+                    s.get("teacher"),
+                    s.get("group_name"),
+                    source,
+                    json.dumps(s.get("raw") or {}),
+                )
+
+
+async def get_user_schedule_slots(user_id, limit: int = 200):
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, course, room, day, start_min, end_min, teacher, group_name, source, created_at
+            FROM user_schedule_slots
+            WHERE user_id=$1
+            ORDER BY day ASC, start_min ASC
+            LIMIT $2
+            """,
+            int(user_id), int(limit)
+        )
+        return [dict(r) for r in rows]
+
+
+async def find_schedule_overlaps(user_id, limit: int = 200):
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT
+              me.id AS my_slot_id,
+              me.course AS my_course,
+              me.room AS my_room,
+              me.day AS my_day,
+              me.start_min AS my_start,
+              me.end_min AS my_end,
+              u.login AS other_login,
+              o.user_id AS other_user_id,
+              o.course AS other_course,
+              o.group_name AS other_group,
+              o.start_min AS other_start,
+              o.end_min AS other_end
+            FROM user_schedule_slots me
+            JOIN user_schedule_slots o
+              ON me.user_id <> o.user_id
+             AND me.day = o.day
+             AND COALESCE(me.room,'') <> ''
+             AND me.room = o.room
+             AND me.start_min < o.end_min
+             AND o.start_min < me.end_min
+            JOIN app_users u ON u.id = o.user_id
+            WHERE me.user_id = $1
+            ORDER BY me.day, me.start_min
+            LIMIT $2
+            """,
+            int(user_id), int(limit)
+        )
+        return [dict(r) for r in rows]
