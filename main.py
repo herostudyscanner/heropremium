@@ -72,13 +72,15 @@ async def handle_ghost_scan(request):
     return web.json_response({"status": "success", "message": "👻 So'rov yuborildi! 3 ta aktiv foydalanuvchi sizning xonangizda. Ular tasdiqlashi kutilmoqda..."})
 
 async def handle_index(request):
-    with open('scanner.html', 'r', encoding='utf-8') as f:
-        return web.Response(text=f.read(), content_type='text/html')
+    try:
+        with open('scanner.html', 'r', encoding='utf-8') as f:
+            return web.Response(text=f.read(), content_type='text/html')
+    except Exception:
+        return web.Response(text="<h1>Scanner fayli topilmadi!</h1>", content_type='text/html')
 
 app = web.Application()
-app.router.add_get('/', handle_index) # <--- Mana shu qatorni qo'shing
+app.router.add_get('/', handle_index) # <--- BU JUDA MUHIM: Sayt ochilishi uchun
 app.router.add_post('/api/ghost_scan', handle_ghost_scan)
-# (Oldingi API yo'lakchalari qoladi: /api/login, /api/scan, etc...)
 
 async def main():
     await db.init_db()
