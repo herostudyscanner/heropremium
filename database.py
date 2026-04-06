@@ -65,3 +65,24 @@ async def check_premium(login: str):
     async with pool.acquire() as conn:
         val = await conn.fetchval("SELECT is_premium FROM app_users WHERE login = $1", login)
         return val if val else False
+from datetime import datetime, timedelta
+
+async def get_or_create_user(telegram_id: int):
+    async with pool.acquire() as conn:
+        # 1. Avval bazadan shu foydalanuvchini qidiramiz
+        user = await conn.fetchrow("SELECT login, password, trial_ends_at FROM app_users WHERE telegram_id = $1", telegram_id)
+        if user:
+            # Agar topilsa, login, parol va vaqtini qaytaramiz
+            return user['login'], user['password'], user['trial_ends_at']
+        
+        # 2. Agar bazada yo'q bo'lsa (yangi foydalanuvchi bo'lsa), unga profil yaratamiz
+        login = "hero_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
+        password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        ends_at = datetime.now() + timedelta(days=30) # 30 kun bepul Premium
+        
+        # Bazaga saqlaymiz
+        await conn.execute(
+            "INSERT INTO app_users (telegram_id, login, password, trial_ends_at) VALUES ($1, $2, $3, $4)",
+            telegram_id, login, password, ends_at
+        )
+        return login, password, ends_at
