@@ -3,9 +3,11 @@ import os
 import time
 import logging
 import re
+from urllib.parse import urlencode
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from aiohttp import web
+import aiohttp
 from aiogram import Bot, Dispatcher
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from aiogram.filters import Command
@@ -31,6 +33,10 @@ PORT        = int(os.getenv("PORT", 8080))
 JWT_SECRET  = os.getenv("JWT_SECRET", "change-me-in-production-use-random-string")
 JWT_EXPIRE_HOURS = 24
 PREMIUM_ACTIVATION_CODE = os.getenv("PREMIUM_ACTIVATION_CODE", "")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "")
+GOOGLE_SCOPES = "openid email profile https://www.googleapis.com/auth/calendar.readonly"
 
 bot = Bot(token=BOT_TOKEN) if BOT_TOKEN else None
 dp  = Dispatcher()
@@ -69,7 +75,7 @@ def is_rate_limited(key: str, max_req: int = 5, window_sec: int = 60) -> bool:
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 
-PUBLIC_PATHS = {"/", "/health", "/api/auth/login"}
+PUBLIC_PATHS = {"/", "/health", "/api/auth/login", "/api/google/oauth/callback"}
 
 @web.middleware
 async def auth_middleware(request: web.Request, handler):
@@ -163,6 +169,88 @@ def schedule_matches_pref(slot: dict, pref: dict) -> bool:
         if s2 < start or e2 > end:
             return False
     return True
+
+
+def normalize_schedule_item(raw: dict) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    time_text = str(raw.get("time", "")).strip()
+    minutes = parse_time_to_minutes(time_text)
+    if not minutes:
+        return None
+    start_min, end_min = minutes
+    day = str(raw.get("day", "")).strip().lower()
+    if not day:
+        return None
+    return {
+        "course": str(raw.get("course", "")).strip()[:160],
+        "room": str(raw.get("room", "")).strip()[:120],
+        "day": day[:32],
+        "start_min": start_min,
+        "end_min": end_min,
+        "teacher": str(raw.get("teacher", "")).strip()[:160],
+        "group_name": str(raw.get("group", raw.get("group_name", ""))).strip()[:120],
+        "raw": raw,
+    }
+
+
+def build_google_oauth_state(user_id: int, telegram_id: int) -> str:
+    payload = {
+        "uid": int(user_id),
+        "tg": int(telegram_id),
+        "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=15),
+        "iat": datetime.now(tz=timezone.utc),
+        "kind": "google_oauth_state",
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+def parse_google_oauth_state(state: str) -> dict | None:
+    try:
+        data = jwt.decode(state, JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        return None
+    if data.get("kind") != "google_oauth_state":
+        return None
+    return data
+
+
+def iso_to_minute_fields(dt_iso: str) -> tuple[str, int, int] | None:
+    try:
+        dt = datetime.fromisoformat(dt_iso.replace("Z", "+00:00")).astimezone()
+        day = dt.strftime("%A").lower()
+        start_min = dt.hour * 60 + dt.minute
+        return day, start_min, dt.second
+    except Exception:
+        return None
+
+
+async def refresh_google_access_token(profile: dict) -> tuple[str | None, str | None]:
+    refresh_token = profile.get("google_refresh_token")
+    if not refresh_token:
+        return None, "Google refresh token topilmadi"
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET or not GOOGLE_REDIRECT_URI:
+        return None, "Google OAuth env sozlanmagan"
+
+    payload = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "refresh_token": refresh_token,
+        "grant_type": "refresh_token",
+    }
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+            async with session.post("https://oauth2.googleapis.com/token", data=payload) as resp:
+                data = await resp.json(content_type=None)
+                if resp.status != 200:
+                    return None, data.get("error_description") or data.get("error") or "Google token refresh xatoligi"
+                access_token = data.get("access_token")
+                expires_in = int(data.get("expires_in", 3600))
+                expire_at = datetime.now() + timedelta(seconds=max(120, expires_in - 30))
+                await db.save_google_tokens(profile["id"], None, access_token, expire_at)
+                return access_token, None
+    except Exception as e:
+        return None, str(e)
 
 # ─── ROUTE HANDLERS ───────────────────────────────────────────────────────────
 
@@ -371,6 +459,219 @@ async def build_schedule_plan(request: web.Request):
     return web.json_response({"status": "success", "data": result})
 
 
+async def verify_google_token(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"status": "error", "message": "JSON xatosi"}, status=400)
+    access_token = str(data.get("access_token", "")).strip()
+    if len(access_token) < 20:
+        return web.json_response({"status": "error", "message": "Google access token noto'g'ri"}, status=400)
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(
+                "https://oauth2.googleapis.com/tokeninfo",
+                params={"access_token": access_token},
+            ) as resp:
+                payload = await resp.json(content_type=None)
+                if resp.status != 200:
+                    return web.json_response({"status": "error", "message": "Google token yaroqsiz", "details": payload}, status=400)
+                email = str(payload.get("email", "")).strip()
+                if email and validate_email(email):
+                    await db.save_google_profile(user["user_id"], email, profile.get("timezone") or "Asia/Tashkent")
+                return web.json_response({
+                    "status": "success",
+                    "data": {
+                        "email": email,
+                        "scope": payload.get("scope"),
+                        "expires_in": payload.get("expires_in"),
+                        "aud": payload.get("aud"),
+                    }
+                })
+    except Exception as e:
+        return web.json_response({"status": "error", "message": f"Google token tekshirishda xatolik: {e}"}, status=500)
+
+
+async def start_google_oauth(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    if not GOOGLE_CLIENT_ID or not GOOGLE_REDIRECT_URI:
+        return web.json_response({"status": "error", "message": "GOOGLE_CLIENT_ID yoki GOOGLE_REDIRECT_URI sozlanmagan"}, status=500)
+    state = build_google_oauth_state(user["user_id"], user["telegram_id"])
+    params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": GOOGLE_SCOPES,
+        "access_type": "offline",
+        "prompt": "consent",
+        "state": state,
+    }
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+    return web.json_response({"status": "success", "data": {"auth_url": url}})
+
+
+async def google_oauth_callback(request: web.Request):
+    code = str(request.query.get("code", "")).strip()
+    state = str(request.query.get("state", "")).strip()
+    if not code or not state:
+        return web.Response(text="Google OAuth callback xato: code/state topilmadi", status=400)
+    parsed = parse_google_oauth_state(state)
+    if not parsed:
+        return web.Response(text="Google OAuth state yaroqsiz", status=400)
+    user_id = int(parsed["uid"])
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET or not GOOGLE_REDIRECT_URI:
+        return web.Response(text="Google OAuth env sozlanmagan", status=500)
+
+    payload = {
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code",
+    }
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            async with session.post("https://oauth2.googleapis.com/token", data=payload) as resp:
+                token_data = await resp.json(content_type=None)
+                if resp.status != 200:
+                    return web.Response(text=f"Google token olishda xatolik: {token_data}", status=400)
+                access_token = token_data.get("access_token")
+                refresh_token = token_data.get("refresh_token")
+                expires_in = int(token_data.get("expires_in", 3600))
+                expire_at = datetime.now() + timedelta(seconds=max(120, expires_in - 30))
+
+            email = ""
+            if access_token:
+                async with session.get(
+                    "https://openidconnect.googleapis.com/v1/userinfo",
+                    headers={"Authorization": f"Bearer {access_token}"}
+                ) as ui:
+                    ui_data = await ui.json(content_type=None)
+                    if ui.status == 200:
+                        email = str(ui_data.get("email", "")).strip()
+            await db.save_google_tokens(user_id, refresh_token, access_token, expire_at)
+            if email and validate_email(email):
+                await db.save_google_profile(user_id, email, "Asia/Tashkent")
+
+        return web.Response(
+            text=(
+                "<html><body style='font-family:Arial;padding:24px'>"
+                "<h2>Google ulandi ✅</h2>"
+                "<p>Mini appga qayting va <b>Schedule import</b> tugmasini bosing.</p>"
+                "</body></html>"
+            ),
+            content_type="text/html"
+        )
+    except Exception as e:
+        return web.Response(text=f"Google callback xatoligi: {e}", status=500)
+
+
+async def fetch_google_schedule(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    access_token = profile.get("google_access_token")
+    expire_at = profile.get("google_token_expire")
+    if not access_token or (expire_at and expire_at <= datetime.now()):
+        access_token, err = await refresh_google_access_token(profile)
+        if err:
+            return web.json_response({"status": "error", "message": f"Google token yangilab bo'lmadi: {err}"}, status=400)
+
+    try:
+        now_iso = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        max_iso = (datetime.utcnow() + timedelta(days=14)).replace(microsecond=0).isoformat() + "Z"
+        url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+        params = {"timeMin": now_iso, "timeMax": max_iso, "singleEvents": "true", "orderBy": "startTime", "maxResults": "250"}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            async with session.get(url, params=params, headers={"Authorization": f"Bearer {access_token}"}) as resp:
+                data = await resp.json(content_type=None)
+                if resp.status != 200:
+                    return web.json_response({"status": "error", "message": f"Calendar olishda xatolik: {data}"}, status=400)
+
+        items = data.get("items", []) or []
+        slots = []
+        for ev in items:
+            start_dt = (ev.get("start") or {}).get("dateTime")
+            end_dt = (ev.get("end") or {}).get("dateTime")
+            if not start_dt or not end_dt:
+                continue
+            s = iso_to_minute_fields(start_dt)
+            e = iso_to_minute_fields(end_dt)
+            if not s or not e:
+                continue
+            day, start_min, _ = s
+            _, end_min, _ = e
+            if end_min <= start_min:
+                continue
+            slots.append({
+                "course": str(ev.get("summary", "Untitled")).strip()[:160],
+                "room": str(ev.get("location", "")).strip()[:120],
+                "day": day,
+                "start_min": start_min,
+                "end_min": end_min,
+                "teacher": "",
+                "group_name": "",
+                "raw": ev,
+            })
+
+        await db.replace_user_schedule_slots(user["user_id"], slots, source="google_calendar")
+        return web.json_response({"status": "success", "message": f"Google Calendar'dan {len(slots)} ta slot import qilindi", "count": len(slots)})
+    except Exception as e:
+        return web.json_response({"status": "error", "message": f"Google schedule import xatoligi: {e}"}, status=500)
+
+
+async def upload_schedule(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"status": "error", "message": "JSON xatosi"}, status=400)
+    schedule = data.get("schedule", [])
+    source = str(data.get("source", "manual")).strip()[:32] or "manual"
+    if not isinstance(schedule, list):
+        return web.json_response({"status": "error", "message": "schedule massiv bo'lishi kerak"}, status=400)
+
+    normalized = []
+    for item in schedule:
+        parsed = normalize_schedule_item(item)
+        if parsed:
+            normalized.append(parsed)
+    if not normalized:
+        return web.json_response({"status": "error", "message": "Yaroqli schedule item topilmadi"}, status=400)
+
+    await db.replace_user_schedule_slots(user["user_id"], normalized, source=source)
+    return web.json_response({"status": "success", "message": f"{len(normalized)} ta slot saqlandi"})
+
+
+async def get_my_schedule(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    rows = await db.get_user_schedule_slots(user["user_id"], limit=300)
+    return web.json_response({"status": "success", "data": rows})
+
+
+async def get_schedule_overlaps(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    rows = await db.find_schedule_overlaps(user["user_id"], limit=300)
+    return web.json_response({"status": "success", "data": rows, "count": len(rows)})
+
+
 async def get_history(request: web.Request):
     user = request["user"]
     logs = await db.get_user_scan_history(user["user_id"], limit=20)
@@ -446,22 +747,28 @@ async def health_check(request: web.Request):
 if bot:
     @dp.message(Command("start"))
     async def cmd_start(m: Message):
-        kb = [[InlineKeyboardButton(text="📱 Panelga Kirish", web_app=WebAppInfo(url=WEBAPP_URL))]]
-        await m.answer(
-            "🛡 *Hero Scanner PRO*\n\nPanelga kirish uchun quyidagi tugmani bosing.\n"
-            "Login va parol olish: /login",
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=kb),
-            parse_mode="Markdown"
+        text = (
+            "🛡 *Hero Scanner PRO · Premium*\n\n"
+            "⚡ Davomat skaneri, tarix, premium scheduler va admin panel bir joyda.\n"
+            "🔐 Kirish ma'lumotlari: /login\n"
         )
+        if WEBAPP_URL:
+            kb = [[InlineKeyboardButton(text="🚀 Mini Appni Ochish", web_app=WebAppInfo(url=WEBAPP_URL))]]
+            text += f"\n🌐 WebApp manzil: `{WEBAPP_URL}`"
+            await m.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb), parse_mode="Markdown")
+        else:
+            text += "\n❗ WEBAPP_URL sozlanmagan. Admin server env ga to'g'ri URL kiritsin."
+            await m.answer(text, parse_mode="Markdown")
 
     @dp.message(Command("login"))
     async def cmd_login(m: Message):
         login, plain_password = await db.get_or_create_user(m.from_user.id)
         await m.answer(
-            f"🔐 *Sizning kirish ma'lumotlaringiz:*\n\n"
+            f"🔐 *Kirish ma'lumotlaringiz (Hero Scanner PRO):*\n\n"
             f"👤 Login: `{login}`\n"
             f"🔑 Parol: `{plain_password}`\n\n"
-            f"⚠️ Bu xabarni o'chirib tashlang — parol faqat bir marta ko'rsatiladi.",
+            f"⚠️ Xavfsizlik uchun xabarni saqlamang va begonalarga yubormang.\n"
+            f"📱 Mini Appga qaytib shu ma'lumot bilan login qiling.",
             parse_mode="Markdown"
         )
 
@@ -479,9 +786,16 @@ async def main():
     app.router.add_get("/api/stats",           get_stats)
     app.router.add_get("/api/premium/status",  get_premium_status)
     app.router.add_post("/api/premium/activate", activate_premium)
+    app.router.add_post("/api/google/verify_token", verify_google_token)
+    app.router.add_get("/api/google/oauth/start", start_google_oauth)
+    app.router.add_get("/api/google/oauth/callback", google_oauth_callback)
+    app.router.add_post("/api/google/schedule/fetch", fetch_google_schedule)
     app.router.add_get("/api/schedule/preferences", get_schedule_preferences)
     app.router.add_post("/api/schedule/preferences", save_schedule_preferences)
     app.router.add_post("/api/schedule/plan", build_schedule_plan)
+    app.router.add_post("/api/schedule/upload", upload_schedule)
+    app.router.add_get("/api/schedule/my", get_my_schedule)
+    app.router.add_get("/api/schedule/overlaps", get_schedule_overlaps)
     app.router.add_get("/api/history",         get_history)
     app.router.add_post("/api/scan",           do_scan)
     app.router.add_get("/api/admin/all_data",  get_admin_all_data)
