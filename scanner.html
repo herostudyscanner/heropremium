@@ -1,87 +1,733 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hero Scanner PRO | Ultra</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
-        :root {
-            --bg-color: #020617; --glass-bg: rgba(15, 23, 42, 0.4);
-            --primary: #6366f1; --danger: #ef4444; --text-main: #f8fafc;
-        }
-        body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--glass-bg); padding: 5px; border-radius: 12px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        
-        .panel { display: none; background: var(--glass-bg); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
-        .panel.active { display: block; }
-        
-        .btn-ghost { width: 100%; padding: 15px; background: linear-gradient(45deg, #ef4444, #991b1b); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
-        .btn-ghost:active { transform: scale(0.98); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShartnomAI — AI Shartnoma Tahlilchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#080b12;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#f0f2f8;--text2:#8892a4;--text3:#4a5568;
+  --accent:#6366f1;--accent2:#818cf8;--accent3:#4f46e5;
+  --glow:rgba(99,102,241,.15);--glow2:rgba(99,102,241,.3);
+  --green:#10b981;--green-bg:rgba(16,185,129,.1);--green-br:rgba(16,185,129,.25);
+  --yellow:#f59e0b;--yellow-bg:rgba(245,158,11,.1);--yellow-br:rgba(245,158,11,.25);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.1);--red-br:rgba(239,68,68,.25);
+  --r:14px;--rsm:10px;--rlg:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;overflow-x:hidden}
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);top:-200px;left:-100px;animation:orbF 12s ease-in-out infinite}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%);bottom:-150px;right:-100px;animation:orbF 15s ease-in-out infinite reverse}
+@keyframes orbF{0%,100%{transform:translateY(0)}50%{transform:translateY(-40px)}}
+header{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(8,11,18,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none}
+.logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 20px var(--glow2)}
+.hright{display:flex;align-items:center;gap:10px}
+.badge-live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--green);background:var(--green-bg);border:1px solid var(--green-br);padding:4px 10px;border-radius:20px}
+.badge-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:lp 1.5s infinite}
+@keyframes lp{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}50%{box-shadow:0 0 0 4px rgba(16,185,129,0)}}
+.hbtn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:var(--accent2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;text-decoration:none}
+.hbtn:hover{background:rgba(99,102,241,.2)}
+.wrap{position:relative;z-index:10;max-width:800px;margin:0 auto;padding:100px 1.5rem 4rem}
+.hero{text-align:center;padding:3rem 0 2rem;animation:fadeUp .8s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);padding:5px 14px;border-radius:20px;margin-bottom:1.5rem}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:1.2rem;letter-spacing:-.02em}
+.grad{background:linear-gradient(135deg,#818cf8,#c084fc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gs 4s ease-in-out infinite alternate}
+@keyframes gs{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(30deg)}}
+.hero p{font-size:16px;color:var(--text2);max-width:500px;margin:0 auto 2rem;line-height:1.7}
+.hstats{display:flex;justify-content:center;margin-bottom:2rem;flex-wrap:wrap;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.hs{text-align:center;padding:.9rem 1.5rem;border-right:1px solid var(--border);flex:1}
+.hs:last-child{border-right:none}
+.hs strong{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;color:var(--text);display:block;line-height:1}
+.hs span{font-size:11px;color:var(--text3);margin-top:4px;display:block}
+.features-strip{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;background:var(--bg2)}
+.feat{flex:1;padding:.9rem .7rem;text-align:center;border-right:1px solid var(--border);transition:background .2s}
+.feat:last-child{border-right:none}
+.feat:hover{background:rgba(99,102,241,.05)}
+.feat-ico{font-size:1.2rem;margin-bottom:4px;display:block}
+.feat-t{font-size:11px;font-weight:600;color:var(--text);display:block;font-family:'Syne',sans-serif}
+.feat-s{font-size:10px;color:var(--text3)}
+@media(max-width:560px){.features-strip{flex-wrap:wrap}.feat{min-width:50%}.hstats{flex-wrap:wrap}.hs{min-width:50%}}
+.demo-banner{background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.08));border:1px solid rgba(99,102,241,.2);border-radius:var(--rsm);padding:10px 16px;font-size:13px;color:var(--text2);margin-bottom:1.2rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.demo-count{font-weight:700;color:var(--accent2)}
+.token-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem 1.4rem;margin-bottom:1.2rem;display:none;animation:fadeUp .3s ease}
+.token-section h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;font-family:'Syne',sans-serif}
+.token-row{display:flex;gap:8px}
+.token-in{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--bg);font-family:'Inter',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.04em}
+.token-in:focus{border-color:rgba(99,102,241,.4)}
+.token-in::placeholder{color:var(--text3);letter-spacing:0}
+.token-submit{padding:9px 16px;background:var(--accent);color:white;border:none;border-radius:var(--rsm);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.token-hint{font-size:11px;color:var(--text3);margin-top:7px}
+.token-hint a{color:var(--accent2)}
+.tok-ok{display:none;margin-top:8px;padding:8px 12px;background:var(--green-bg);border:1px solid var(--green-br);border-radius:var(--rsm);font-size:12px;color:var(--green);align-items:center;gap:6px}
+.tok-err{display:none;margin-top:8px;padding:8px 12px;background:var(--red-bg);border:1px solid var(--red-br);border-radius:var(--rsm);font-size:12px;color:var(--red)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;transition:border-color .3s}
+.card:hover{border-color:var(--border2)}
+.lang-row{display:flex;gap:6px;padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);background:var(--bg3);align-items:center;flex-wrap:wrap}
+.lang-label{font-size:12px;color:var(--text3);margin-right:4px;font-weight:500}
+.lang-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s}
+.lang-btn:hover{border-color:var(--border2);color:var(--text)}
+.lang-btn.active{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 0 16px var(--glow2)}
+.upload-zone{margin:1.4rem;border:1.5px dashed rgba(99,102,241,.25);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .25s;background:rgba(99,102,241,.03);position:relative}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(99,102,241,.07);transform:scale(1.005)}
+.upload-zone.has-file{border-style:solid;border-color:var(--green);background:var(--green-bg);transform:none}
+.upload-input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-ico{width:56px;height:56px;margin:0 auto 1rem;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .2s}
+.upload-zone:hover .upload-ico{transform:scale(1.1) rotate(3deg)}
+.upload-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px;font-family:'Syne',sans-serif}
+.upload-sub{font-size:13px;color:var(--text3)}
+.file-info{display:flex;align-items:center;gap:12px;text-align:left}
+.file-ico-wrap{width:46px;height:46px;background:var(--green-bg);border:1px solid var(--green-br);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.file-name{font-weight:600;color:var(--green);font-size:14px}
+.file-size{font-size:12px;color:var(--text3);margin-top:2px}
+.file-change{font-size:12px;color:var(--accent2);cursor:pointer;margin-left:auto;text-decoration:underline}
+.or-div{display:flex;align-items:center;gap:12px;padding:0 1.4rem;margin:-.2rem 0;font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--border)}
+.paste-area{display:block;width:calc(100% - 2.8rem);margin:1rem 1.4rem;min-height:110px;padding:14px;border:1px solid var(--border);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:rgba(255,255,255,.02);resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;line-height:1.6}
+.paste-area:focus{border-color:rgba(99,102,241,.4);box-shadow:0 0 0 3px var(--glow)}
+.paste-area::placeholder{color:var(--text3)}
+.char-count{font-size:11px;color:var(--text3);text-align:right;padding:0 1.4rem .4rem}
+.analyze-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 2.8rem);margin:.6rem 1.4rem 1.4rem;padding:15px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;letter-spacing:.02em;box-shadow:0 4px 24px rgba(99,102,241,.35);position:relative;overflow:hidden}
+.analyze-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .2s}
+.analyze-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.5)}
+.analyze-btn:hover::before{opacity:1}
+.analyze-btn:disabled{background:linear-gradient(135deg,#2a2f3d,#1e2433);color:var(--text3);cursor:not-allowed;box-shadow:none;transform:none}
+.btn-shine{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shine 3s ease-in-out infinite 1s}
+@keyframes shine{0%{left:-100%}40%,100%{left:150%}}
+.error-box{margin:0 1.4rem .8rem;padding:12px 16px;background:var(--red-bg);border:1px solid var(--red-br);border-radius:var(--rsm);font-size:13px;color:var(--red);display:none;line-height:1.6;animation:fadeUp .3s ease}
+.error-box.show{display:block}
+.loading-state{padding:4rem 1.4rem;text-align:center;display:none}
+.loading-state.show{display:block}
+.ai-loader{width:80px;height:80px;margin:0 auto 2rem;position:relative}
+.alr{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+.alr:nth-child(1){border-top-color:var(--accent);animation:spin 1.2s linear infinite}
+.alr:nth-child(2){inset:8px;border-right-color:var(--accent2);animation:spin .9s linear infinite reverse}
+.alr:nth-child(3){inset:16px;border-bottom-color:#c084fc;animation:spin .7s linear infinite}
+.alr-core{position:absolute;inset:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));animation:cp 1.5s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes cp{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.1);opacity:1}}
+.loading-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.loading-sub{font-size:13px;color:var(--text3);margin-bottom:2rem}
+.load-steps{display:flex;flex-direction:column;gap:8px;max-width:280px;margin:0 auto;text-align:left}
+.ls{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text3);padding:6px 10px;border-radius:8px;transition:all .3s}
+.ls.active{color:var(--accent2);background:rgba(99,102,241,.08)}
+.ls.done{color:var(--green)}
+.ls-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:all .3s}
+.ls.done .ls-dot{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5)}
+.ls.active .ls-dot{background:var(--accent);animation:lp 1s infinite}
+.results{display:none}
+.results.show{display:block;animation:fadeUp .5s ease}
+.verdict-card{border-radius:var(--rlg);padding:1.8rem;margin-bottom:1.5rem;border:1px solid;position:relative;overflow:hidden}
+.verdict-card::before{content:'';position:absolute;inset:0;opacity:.05;background:radial-gradient(circle at 0% 0%,white,transparent 60%)}
+.vs{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));border-color:var(--green-br)}
+.vc{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border-color:var(--yellow-br)}
+.vr{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.06));border-color:var(--red-br)}
+.vtop{display:flex;align-items:flex-start;gap:1rem}
+.vico{font-size:2.5rem;flex-shrink:0}
+.vh{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.vp{font-size:14px;color:var(--text2);line-height:1.7}
+.vpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.04em}
+.ps{background:rgba(16,185,129,.2);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.pc{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.pr{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.sec-head{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:2rem 0 .9rem;display:flex;align-items:center;gap:10px}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.risk-list{display:flex;flex-direction:column;gap:10px;margin-bottom:.5rem}
+.risk-card{border-radius:var(--r);padding:1rem 1.2rem;border:1px solid;border-left:3px solid;transition:transform .2s;animation:fadeUp .4s ease both}
+.risk-card:hover{transform:translateX(4px)}
+.rh{background:var(--red-bg);border-color:var(--red-br);border-left-color:var(--red)}
+.rm{background:var(--yellow-bg);border-color:var(--yellow-br);border-left-color:var(--yellow)}
+.rl{background:var(--green-bg);border-color:var(--green-br);border-left-color:var(--green)}
+.risk-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rbadge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.05em}
+.rbh{background:var(--red);color:white}
+.rbm{background:var(--yellow);color:white}
+.rbl{background:var(--green);color:white}
+.rtitle{font-weight:600;font-size:14px;color:var(--text);font-family:'Syne',sans-serif}
+.rquote{font-size:12px;font-style:italic;color:var(--text3);margin-bottom:7px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:6px;line-height:1.5;border-left:2px solid var(--border2)}
+.rexp{font-size:13px;color:var(--text2);line-height:1.6}
+.oblig-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.5rem}
+@media(max-width:560px){.oblig-grid{grid-template-columns:1fr}}
+.oblig-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem}
+.oblig-title{font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;letter-spacing:.04em}
+.oblig-item{display:flex;gap:8px;font-size:13px;color:var(--text2);margin-bottom:7px;line-height:1.5}
+.oblig-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:7px}
+.dates-list{display:flex;flex-direction:column;gap:8px;margin-bottom:.5rem}
+.date-item{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 14px;transition:border-color .2s}
+.date-item:hover{border-color:var(--border2)}
+.date-emoji{font-size:1.3rem;flex-shrink:0}
+.date-label{font-size:13px;font-weight:500;color:var(--text2);flex:1}
+.date-val{font-size:12px;background:rgba(99,102,241,.1);color:var(--accent2);padding:3px 10px;border-radius:20px;font-weight:600}
+.rec-box{border-radius:var(--r);padding:1.4rem;margin-bottom:.5rem;border:1px solid}
+.rec-safe{background:var(--green-bg);border-color:var(--green-br)}
+.rec-caution{background:var(--yellow-bg);border-color:var(--yellow-br)}
+.rec-risk{background:var(--red-bg);border-color:var(--red-br)}
+.rec-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.rec-text{font-size:14px;color:var(--text2);line-height:1.7}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.5rem}
+.btn-ghost{padding:10px 18px;border:1px solid var(--border);border-radius:var(--rsm);background:transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,.04)}
+.btn-accent{padding:10px 18px;border:1px solid rgba(99,102,241,.3);border-radius:var(--rsm);background:rgba(99,102,241,.12);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-accent:hover{background:rgba(99,102,241,.22);box-shadow:0 0 16px var(--glow)}
+.chat-section{margin-top:1.5rem;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:none;animation:fadeUp .3s ease}
+.chat-section.show{display:block}
+.chat-head{background:var(--bg3);padding:12px 16px;font-size:13px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif}
+.sample-qs{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;gap:6px;flex-wrap:wrap}
+.sample-q{font-size:11px;padding:5px 11px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.sample-q:hover{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:var(--accent2)}
+.chat-msgs{padding:14px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:85%;font-size:13px;line-height:1.6;padding:9px 13px;border-radius:12px}
+.chat-msg.user{background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;align-self:flex-end;border-radius:12px 12px 2px 12px}
+.chat-msg.ai{background:var(--bg3);border:1px solid var(--border);color:var(--text2);align-self:flex-start;border-radius:12px 12px 12px 2px}
+.chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);background:var(--bg2)}
+.chat-in{flex:1;padding:9px 14px;border:1px solid var(--border);border-radius:22px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .2s}
+.chat-in:focus{border-color:rgba(99,102,241,.4)}
+.chat-in::placeholder{color:var(--text3)}
+.chat-send{width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent3));color:white;cursor:pointer;font-size:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 10px var(--glow)}
+.chat-send:hover{transform:scale(1.1);box-shadow:0 4px 16px var(--glow2)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.show{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:2rem;max-width:460px;width:100%;animation:fadeUp .3s ease;box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(99,102,241,.1)}
+.modal-h{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}
+.modal-sub{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.modal-plans{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+.modal-plan{border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s}
+.modal-plan:hover,.modal-plan.sel{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.07)}
+.modal-plan.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.plan-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.plan-name{font-weight:600;font-size:14px;font-family:'Syne',sans-serif}
+.plan-price{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;color:var(--accent2)}
+.plan-desc{font-size:12px;color:var(--text3)}
+.tg-pay-btn{width:100%;padding:13px;background:linear-gradient(135deg,#1d60bf,#2979d4);color:white;border:none;border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(41,121,212,.4)}
+.tg-pay-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(41,121,212,.5)}
+.modal-note{font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6}
+.modal-close{font-size:12px;color:var(--text3);text-align:center;margin-top:8px;cursor:pointer;transition:color .2s}
+.modal-close:hover{color:var(--text2)}
+.premium-block{margin-top:1.6rem;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.04));border:1px solid rgba(99,102,241,.2);border-radius:var(--rlg);padding:1.2rem}
+.pb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:1rem}
+.pb-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.pb-badge{font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,.16);border:1px solid rgba(99,102,241,.3);color:var(--accent2)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.p-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;transition:transform .2s,border-color .2s,box-shadow .2s}
+.p-card:hover{transform:translateY(-2px);border-color:rgba(99,102,241,.35);box-shadow:0 10px 26px rgba(0,0,0,.25)}
+.p-card.featured{border-color:rgba(99,102,241,.4);box-shadow:0 0 0 1px rgba(99,102,241,.35) inset}
+.p-name{font-size:13px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:4px}
+.p-price{font-size:1.15rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent2);margin-bottom:8px}
+.p-feat{font-size:12px;color:var(--text2);line-height:1.7}
+.trust-row{margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap}
+.trust-pill{font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.02);color:var(--text2)}
+.faq-wrap{margin-top:1.6rem;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;background:var(--bg2)}
+.faq-head{padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{width:100%;text-align:left;background:transparent;border:none;color:var(--text);padding:13px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif}
+.faq-q:hover{background:rgba(99,102,241,.05)}
+.faq-a{max-height:0;overflow:hidden;padding:0 14px;color:var(--text2);font-size:13px;line-height:1.7;transition:max-height .28s ease,padding .28s ease}
+.faq-item.open .faq-a{max-height:140px;padding:0 14px 13px}
+.faq-item.open .faq-ico{transform:rotate(45deg)}
+.faq-ico{font-size:16px;color:var(--accent2);transition:transform .2s}
+.cta-band{margin-top:1.5rem;padding:1rem 1.1rem;border:1px solid rgba(99,102,241,.25);border-radius:14px;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(79,70,229,.08));display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.cta-t{font-size:13px;color:var(--text2)}
+.cta-b{padding:10px 14px;border-radius:10px;border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.2);color:#c7d2fe;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .45s ease}
+.reveal.show{opacity:1;transform:translateY(0)}
+@media(max-width:720px){.pricing-grid{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+footer{text-align:center;font-size:12px;color:var(--text3);margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);padding-bottom:2rem;line-height:1.8}
+footer a{color:var(--accent2);text-decoration:none}
+</style>
 </head>
 <body>
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-scan" onclick="switchTab('scan')">Skaner</button>
-        <button class="tab-btn" id="btn-premium" onclick="switchTab('premium')">Arvoh Davomat</button>
+<canvas id="particles"></canvas>
+<div class="orb orb1"></div><div class="orb orb2"></div>
+
+<div class="modal-bg" id="paywallModal">
+  <div class="modal">
+    <div class="modal-h">Pro versiyaga o'tish</div>
+    <div class="modal-sub">Siz 3 ta bepul demoni ishlatdingiz. Davom etish uchun Telegram orqali murojaat qiling va to'lov qiling.</div>
+    <div class="modal-plans">
+      <div class="modal-plan sel" onclick="selPlan(this,'starter')">
+        <div class="plan-row"><span class="plan-name">⚡ Starter</span><span class="plan-price">$9.99/oy</span></div>
+        <div class="plan-desc">20 ta tahlil · 3 til · Chat rejimi</div>
+      </div>
+      <div class="modal-plan" onclick="selPlan(this,'pro')">
+        <div class="plan-row"><span class="plan-name">🚀 Pro</span><span class="plan-price">$29.99/oy</span></div>
+        <div class="plan-desc">Cheksiz tahlil · Hisobot eksport · Ustunlik</div>
+      </div>
+      <div class="modal-plan" onclick="selPlan(this,'single')">
+        <div class="plan-row"><span class="plan-name">🎯 Bir marta</span><span class="plan-price">$3.99</span></div>
+        <div class="plan-desc">3 ta tahlil · Muddatsiz · Obuna shart emas</div>
+      </div>
     </div>
+    <button class="tg-pay-btn" onclick="goToPay()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
+      Telegram orqali murojaat →
+    </button>
+    <div class="modal-note">Telegram'da to'lovni amalga oshiring va token oling</div>
+    <div class="modal-close" onclick="closeModal()">Keyinroq</div>
+  </div>
+</div>
 
-    <div id="scan-tab" class="panel active">
-        <h2>QR Skaner</h2>
-        <p>Tez orada bu yerga kameradan o'qish imkoniyati qo'shiladi...</p>
+<header>
+  <a class="logo" href="#"><div class="logo-icon">⚖️</div>ShartnomAI</a>
+  <div class="hright">
+    <span class="badge-live">Jonli</span>
+    <a class="hbtn" id="tgLink" href="#" target="_blank">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
+      Telegram
+    </a>
+    <button class="hbtn" onclick="showTokenSection()">🔑 Token</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-tag" id="heroTag">🤖 AI · Yuridik tahlil · O'zbek tili</div>
+    <h1 id="heroTitle">Shartnomangizni<br><span class="grad">AI tahlil qiladi</span></h1>
+    <p id="heroDesc">Xavfli bandlar, majburiyatlar, muhim sanalar — 60 soniyada. Yurist yollamasdan.</p>
+    <div class="hstats">
+      <div class="hs"><strong>60s</strong><span id="stat1">Tahlil vaqti</span></div>
+      <div class="hs"><strong>3</strong><span id="stat2">Til</span></div>
+      <div class="hs"><strong>100%</strong><span id="stat3">Maxfiy</span></div>
+      <div class="hs"><strong>3x</strong><span id="stat4">Bepul demo</span></div>
     </div>
+  </div>
 
-    <div id="premium-tab" class="panel">
-        <h2>👻 Arvoh Davomat</h2>
-        <p>Agar siz darsda bo'lmasangiz, bu tugma orqali darsdagi talabalardan QR kodni tasdiqlab yuborishni so'rashingiz mumkin.</p>
-        <button class="btn-ghost" onclick="ghostScan()">YORDAM SO'RASH</button>
+  <div class="features-strip">
+    <div class="feat"><span class="feat-ico">🔍</span><span class="feat-t" id="featT1">Xavf tahlili</span><span class="feat-s" id="featS1">Qizil/sariq/yashil</span></div>
+    <div class="feat"><span class="feat-ico">📋</span><span class="feat-t" id="featT2">Majburiyatlar</span><span class="feat-s" id="featS2">Ikkala tomon</span></div>
+    <div class="feat"><span class="feat-ico">📅</span><span class="feat-t" id="featT3">Sanalar</span><span class="feat-s" id="featS3">Muddatlar</span></div>
+    <div class="feat"><span class="feat-ico">💬</span><span class="feat-t" id="featT4">Chat rejimi</span><span class="feat-s" id="featS4">Savol-javob</span></div>
+  </div>
+
+  <div class="token-section" id="tokenSection">
+    <h3 id="tokenHeading">🔑 Obuna tokenini kiriting</h3>
+    <div class="token-row">
+      <input type="text" class="token-in" id="tokenInput" placeholder="SH-XXXX-XXXX-XXXX">
+      <button class="token-submit" id="tokenSubmit" onclick="verifyToken()">Kirish</button>
     </div>
+    <div class="token-hint" id="tokenHint">Token Telegram'dan keladi. Muammo: <a id="tgHint" href="#">@Mluhammadali</a></div>
+    <div class="tok-ok" id="tokOk">✅ Muvaffaqiyatli! Cheksiz tahlil mumkin.</div>
+    <div class="tok-err" id="tokErr">❌ Token noto'g'ri.</div>
+  </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+  <div class="demo-banner" id="demoBanner">
+    <span>⚡</span>
+    <span id="demoTextBefore">Sizda</span> <span class="demo-count" id="demoCount">3</span> <span id="demoTextAfter">ta bepul demo qoldi.</span>
+    <span id="demoTextFull">To'liq versiya:</span> <a id="tgBanner" href="#" target="_blank" style="color:var(--accent2)">Telegram</a>
+  </div>
 
-        function switchTab(tab) {
-            document.getElementById('scan-tab').style.display = tab === 'scan' ? 'block' : 'none';
-            document.getElementById('premium-tab').style.display = tab === 'premium' ? 'block' : 'none';
-            document.getElementById('btn-scan').classList.toggle('active', tab === 'scan');
-            document.getElementById('btn-premium').classList.toggle('active', tab === 'premium');
+  <div class="card">
+    <div class="lang-row">
+      <span class="lang-label" id="langLabel">Til:</span>
+      <button class="lang-btn active" onclick="setLang('uz',this)">🇺🇿 O'zbek</button>
+      <button class="lang-btn" onclick="setLang('ru',this)">🇷🇺 Русский</button>
+      <button class="lang-btn" onclick="setLang('en',this)">🇬🇧 English</button>
+    </div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" class="upload-input" id="fileInput" accept=".pdf,.txt" onchange="handleFile(event)">
+      <div class="upload-ico">📄</div>
+      <div class="upload-title" id="uploadTitle">PDF yoki TXT faylni tashlang</div>
+      <div class="upload-sub" id="uploadSub">yoki bosib faylni tanlang · Maksimal 5MB</div>
+    </div>
+    <div class="or-div" id="orDiv">yoki matn kiriting</div>
+    <textarea class="paste-area" id="pasteArea" placeholder="Bu yerga shartnoma matnini nusxalab joylashtiring..." oninput="updateCC()"></textarea>
+    <div class="char-count" id="charCount">0 / 12,000</div>
+    <div class="error-box" id="errorBox"></div>
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+      <div class="btn-shine"></div>
+      <span>🔍</span> <span id="analyzeBtnText">Shartnomani Tahlil Qilish</span>
+    </button>
+  </div>
+
+  <div class="loading-state" id="loadingState">
+    <div class="ai-loader">
+      <div class="alr"></div><div class="alr"></div><div class="alr"></div>
+      <div class="alr-core">🤖</div>
+    </div>
+    <div class="loading-title" id="loadingTitle">AI tahlil qilmoqda...</div>
+    <div class="loading-sub" id="loadingSub">30–60 soniya kutib turing</div>
+    <div class="load-steps">
+      <div class="ls active" id="step1"><div class="ls-dot"></div><span id="stepText1">Matn ajratilmoqda</span></div>
+      <div class="ls" id="step2"><div class="ls-dot"></div><span id="stepText2">Xavfli bandlar topilmoqda</span></div>
+      <div class="ls" id="step3"><div class="ls-dot"></div><span id="stepText3">Majburiyatlar tahlil qilinmoqda</span></div>
+      <div class="ls" id="step4"><div class="ls-dot"></div><span id="stepText4">Hisobot tayyorlanmoqda</span></div>
+    </div>
+  </div>
+
+  <div class="results" id="resultsSection">
+    <div id="verdictCard"></div>
+    <div class="sec-head" id="riskHead">Xavfli bandlar</div>
+    <div class="risk-list" id="riskList"></div>
+    <div class="sec-head" id="obligHead">Majburiyatlar</div>
+    <div class="oblig-grid" id="obligGrid"></div>
+    <div class="sec-head" id="datesHead">Muhim sanalar</div>
+    <div class="dates-list" id="datesList"></div>
+    <div class="sec-head" id="recHead">Umumiy tavsiya</div>
+    <div id="recBox"></div>
+    <div class="action-row">
+      <button class="btn-ghost" id="newContractBtn" onclick="resetAll()">↩ Yangi shartnoma</button>
+      <button class="btn-ghost" id="copyBtn" onclick="copyReport()">📋 Nusxa olish</button>
+      <button class="btn-accent" id="chatToggleBtn" onclick="toggleChat()">💬 Savol so'rash</button>
+    </div>
+    <div class="chat-section" id="chatSection">
+      <div class="chat-head" id="chatHead">💬 Shartnoma haqida savol bering</div>
+      <div class="sample-qs" id="sampleQs"></div>
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-input-row">
+        <input class="chat-in" id="chatIn" placeholder="Savolingizni yozing..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="premium-block reveal">
+    <div class="pb-head">
+      <div class="pb-title">Premium imkoniyatlar</div>
+      <span class="pb-badge">Monetization ready</span>
+    </div>
+    <div class="pricing-grid">
+      <div class="p-card">
+        <div class="p-name">Starter</div>
+        <div class="p-price">$9.99/oy</div>
+        <div class="p-feat">20 ta tahlil</div>
+        <div class="p-feat">3 ta til</div>
+        <div class="p-feat">Chat rejimi</div>
+      </div>
+      <div class="p-card featured">
+        <div class="p-name">Pro</div>
+        <div class="p-price">$29.99/oy</div>
+        <div class="p-feat">Cheksiz tahlil</div>
+        <div class="p-feat">Prioritet javob</div>
+        <div class="p-feat">Eksport (copy/report)</div>
+      </div>
+      <div class="p-card">
+        <div class="p-name">Bir martalik</div>
+        <div class="p-price">$3.99</div>
+        <div class="p-feat">3 ta tahlil</div>
+        <div class="p-feat">Muddatsiz</div>
+        <div class="p-feat">Obunasiz ishlaydi</div>
+      </div>
+    </div>
+    <div class="trust-row">
+      <span class="trust-pill">🔒 Maxfiylik</span>
+      <span class="trust-pill">⚡ 60 soniya ichida</span>
+      <span class="trust-pill">🌍 3 tilda</span>
+      <span class="trust-pill">💬 Telegram support</span>
+    </div>
+  </section>
+
+  <section class="faq-wrap reveal">
+    <div class="faq-head">Ko'p so'raladigan savollar</div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Ma'lumotlar saqlanadimi?<span class="faq-ico">+</span></button>
+      <div class="faq-a">Yo'q. Hujjatlar doimiy saqlanmaydi, faqat tahlil jarayonida qayta ishlanadi.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">AI xato qilishi mumkinmi?<span class="faq-ico">+</span></button>
+      <div class="faq-a">Ha, shuning uchun yakuniy qarorlar uchun yurist tekshiruvi tavsiya qilinadi.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Qaysi formatlar ishlaydi?<span class="faq-ico">+</span></button>
+      <div class="faq-a">Hozircha PDF, TXT va to'g'ridan-to'g'ri matn kiritish qo'llab-quvvatlanadi.</div>
+    </div>
+  </section>
+
+  <div class="cta-band reveal">
+    <div class="cta-t">Jamoa yoki biznes uchun alohida tarif kerakmi? Telegram orqali yozing, sizga mos plan tayyorlaymiz.</div>
+    <button class="cta-b" onclick="goToPay()">Premium'ga o'tish</button>
+  </div>
+
+  <footer>
+    <span id="footerLine1">ShartnomAI — yuridik maslahat emas. Muhim qarorlar uchun yuristga murojaat qiling.</span><br>
+    <span id="footerLine2">Hujjatlaringiz serverda saqlanmaydi. To'lov va savollar:</span> <a id="tgFooter" href="#" target="_blank">Telegram</a>
+  </footer>
+</div>
+
+<script>
+if(typeof pdfjsLib!=='undefined')
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ═══ SOZLAMALAR — O'ZGARTIRING ═══
+const TG_LINK='https://t.me/Mluhammadali'; // <- o'z Telegram linkingi
+const API_ENDPOINT='/api/analyze';
+const MAX_FREE=3;
+// ════════════════════════════════
+
+// Update TG links
+['tgLink','tgBanner','tgFooter','tgHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.href=TG_LINK});
+document.querySelectorAll('.tg-pay-btn').forEach(()=>{});
+
+// Particles
+(function(){
+  const c=document.getElementById('particles'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<70;i++)pts.push({x:Math.random()*100,y:Math.random()*100,vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12,r:Math.random()*1.4+.3,o:Math.random()*.35+.1});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>100)p.vx*=-1;
+      if(p.y<0||p.y>100)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x/100*W,p.y/100*H,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(99,102,241,${p.o})`;ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=(pts[i].x-pts[j].x)/100*W,dy=(pts[i].y-pts[j].y)/100*H,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x/100*W,pts[i].y/100*H);ctx.lineTo(pts[j].x/100*W,pts[j].y/100*H);ctx.strokeStyle=`rgba(99,102,241,${.1*(1-d/110)})`;ctx.lineWidth=.5;ctx.stroke()}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+let lang='uz',contractText='',chatHistory=[],selPlanKey='starter',lastResult=null;
+let userToken=localStorage.getItem('sh_token')||'';
+let isSub=!!userToken;
+
+const UI_TEXT={
+  uz:{pageTitle:"ShartnomAI — AI Shartnoma Tahlilchi",heroTag:"🤖 AI · Yuridik tahlil · O'zbek tili",heroTitle:"Shartnomangizni<br><span class='grad'>AI tahlil qiladi</span>",heroDesc:"Xavfli bandlar, majburiyatlar, muhim sanalar — 60 soniyada. Yurist yollamasdan.",stat1:"Tahlil vaqti",stat2:"Til",stat3:"Maxfiy",stat4:"Bepul demo",featT1:"Xavf tahlili",featS1:"Qizil/sariq/yashil",featT2:"Majburiyatlar",featS2:"Ikkala tomon",featT3:"Sanalar",featS3:"Muddatlar",featT4:"Chat rejimi",featS4:"Savol-javob",tokenHeading:"🔑 Obuna tokenini kiriting",tokenSubmit:"Kirish",tokenHintPrefix:"Token Telegram'dan keladi. Muammo:",tokOk:"✅ Muvaffaqiyatli! Cheksiz tahlil mumkin.",tokErr:"❌ Token noto'g'ri.",demoTextBefore:"Sizda",demoTextAfter:"ta bepul demo qoldi.",demoTextFull:"To'liq versiya:",langLabel:"Til:",orDiv:"yoki matn kiriting",analyzeBtnText:"Shartnomani Tahlil Qilish",loadingTitle:"AI tahlil qilmoqda...",loadingSub:"30–60 soniya kutib turing",stepText1:"Matn ajratilmoqda",stepText2:"Xavfli bandlar topilmoqda",stepText3:"Majburiyatlar tahlil qilinmoqda",stepText4:"Hisobot tayyorlanmoqda",riskHead:"Xavfli bandlar",obligHead:"Majburiyatlar",datesHead:"Muhim sanalar",recHead:"Umumiy tavsiya",newContractBtn:"↩ Yangi shartnoma",copyBtn:"📋 Nusxa olish",chatToggleBtn:"💬 Savol so'rash",chatHead:"💬 Shartnoma haqida savol bering",chatInputPlaceholder:"Savolingizni yozing...",footerLine1:"ShartnomAI — yuridik maslahat emas. Muhim qarorlar uchun yuristga murojaat qiling.",footerLine2:"Hujjatlaringiz serverda saqlanmaydi. To'lov va savollar:",uploadTitle:"PDF yoki TXT faylni tashlang",uploadSub:"yoki bosib faylni tanlang · Maksimal 5MB",uploadChange:"O'zgartirish",fileSizeError:"Fayl hajmi 5MB dan oshmasligi kerak.",pdfReadError:"PDF o'qishda xatolik. Matnni kiriting.",emptyInputError:"Shartnoma faylini yuklang yoki matnni kiriting.",invalidTokenError:"Token noto'g'ri. Telegramga murojaat qiling.",noRisks:"Sezilarli xavfli band topilmadi.",party1:"Tomon 1",party2:"Tomon 2",noDates:"Aniq sana topilmadi.",recommendation:"Tavsiya",copySuccess:"✅ Nusxa olindi!",reportTitle:"SHARTNOMA TAHLILI — ShartnomAI",reportVerdict:"VERDIKT",reportRisks:"XAVFLI BANDLAR",reportRecommendation:"TAVSIYA",chatErrorPrefix:"Xatolik:"},
+  ru:{pageTitle:"ShartnomAI — AI Анализ договоров",heroTag:"🤖 AI · Юридический анализ · Русский",heroTitle:"Ваш договор<br><span class='grad'>анализирует AI</span>",heroDesc:"Риски, обязательства и важные даты — за 60 секунд. Без найма юриста.",stat1:"Время анализа",stat2:"Языки",stat3:"Конфиденциально",stat4:"Бесплатные демо",featT1:"Анализ рисков",featS1:"Красный/желтый/зеленый",featT2:"Обязательства",featS2:"Обе стороны",featT3:"Даты",featS3:"Сроки",featT4:"Чат-режим",featS4:"Вопрос-ответ",tokenHeading:"🔑 Введите токен подписки",tokenSubmit:"Войти",tokenHintPrefix:"Токен приходит из Telegram. Вопросы:",tokOk:"✅ Успешно! Доступен безлимитный анализ.",tokErr:"❌ Неверный токен.",demoTextBefore:"У вас осталось",demoTextAfter:"бесплатных демо.",demoTextFull:"Полная версия:",langLabel:"Язык:",orDiv:"или вставьте текст",analyzeBtnText:"Анализировать договор",loadingTitle:"AI анализирует...",loadingSub:"Подождите 30–60 секунд",stepText1:"Извлекается текст",stepText2:"Ищутся рискованные пункты",stepText3:"Анализируются обязательства",stepText4:"Готовится отчет",riskHead:"Рискованные пункты",obligHead:"Обязательства",datesHead:"Важные даты",recHead:"Общая рекомендация",newContractBtn:"↩ Новый договор",copyBtn:"📋 Копировать",chatToggleBtn:"💬 Задать вопрос",chatHead:"💬 Задайте вопрос о договоре",chatInputPlaceholder:"Напишите ваш вопрос...",footerLine1:"ShartnomAI — это не юридическая консультация. Для важных решений обратитесь к юристу.",footerLine2:"Ваши документы не хранятся на сервере. Оплата и вопросы:",uploadTitle:"Перетащите PDF или TXT файл",uploadSub:"или нажмите, чтобы выбрать файл · Максимум 5MB",uploadChange:"Изменить",fileSizeError:"Размер файла не должен превышать 5MB.",pdfReadError:"Ошибка чтения PDF. Вставьте текст вручную.",emptyInputError:"Загрузите договор или вставьте текст.",invalidTokenError:"Токен неверный. Напишите в Telegram.",noRisks:"Существенных рисков не найдено.",party1:"Сторона 1",party2:"Сторона 2",noDates:"Точные даты не найдены.",recommendation:"Рекомендация",copySuccess:"✅ Скопировано!",reportTitle:"АНАЛИЗ ДОГОВОРА — ShartnomAI",reportVerdict:"ВЕРДИКТ",reportRisks:"РИСКОВАННЫЕ ПУНКТЫ",reportRecommendation:"РЕКОМЕНДАЦИЯ",chatErrorPrefix:"Ошибка:"},
+  en:{pageTitle:"ShartnomAI — AI Contract Analyzer",heroTag:"🤖 AI · Legal Analysis · English",heroTitle:"Your contract<br><span class='grad'>analyzed by AI</span>",heroDesc:"Risky clauses, obligations, and key dates in 60 seconds. No lawyer hiring needed.",stat1:"Analysis Time",stat2:"Languages",stat3:"Confidential",stat4:"Free Demos",featT1:"Risk Analysis",featS1:"Red/yellow/green",featT2:"Obligations",featS2:"Both parties",featT3:"Dates",featS3:"Deadlines",featT4:"Chat Mode",featS4:"Q&A",tokenHeading:"🔑 Enter subscription token",tokenSubmit:"Enter",tokenHintPrefix:"Token comes from Telegram. Support:",tokOk:"✅ Success! Unlimited analysis enabled.",tokErr:"❌ Invalid token.",demoTextBefore:"You have",demoTextAfter:"free demos left.",demoTextFull:"Full version:",langLabel:"Language:",orDiv:"or paste text",analyzeBtnText:"Analyze Contract",loadingTitle:"AI is analyzing...",loadingSub:"Please wait 30–60 seconds",stepText1:"Extracting text",stepText2:"Finding risky clauses",stepText3:"Analyzing obligations",stepText4:"Preparing report",riskHead:"Risky Clauses",obligHead:"Obligations",datesHead:"Important Dates",recHead:"General Recommendation",newContractBtn:"↩ New Contract",copyBtn:"📋 Copy Report",chatToggleBtn:"💬 Ask a Question",chatHead:"💬 Ask about this contract",chatInputPlaceholder:"Type your question...",footerLine1:"ShartnomAI is not legal advice. For important decisions, consult a lawyer.",footerLine2:"Your documents are not stored on the server. Payment and questions:",uploadTitle:"Drop PDF or TXT file",uploadSub:"or click to select a file · Maximum 5MB",uploadChange:"Change",fileSizeError:"File size must not exceed 5MB.",pdfReadError:"Failed to read PDF. Please paste text manually.",emptyInputError:"Upload a contract file or paste text.",invalidTokenError:"Invalid token. Contact us on Telegram.",noRisks:"No significant risky clauses found.",party1:"Party 1",party2:"Party 2",noDates:"No specific dates found.",recommendation:"Recommendation",copySuccess:"✅ Copied!",reportTitle:"CONTRACT ANALYSIS — ShartnomAI",reportVerdict:"VERDICT",reportRisks:"RISKY CLAUSES",reportRecommendation:"RECOMMENDATION",chatErrorPrefix:"Error:"}
+};
+
+function t(key){return (UI_TEXT[lang]&&UI_TEXT[lang][key])||UI_TEXT.uz[key]||key}
+
+function renderUploadEmpty(){
+  const z=document.getElementById('uploadZone');
+  z.innerHTML=`<input type="file" class="upload-input" id="fileInput" accept=".pdf,.txt" onchange="handleFile(event)"><div class="upload-ico">📄</div><div class="upload-title" id="uploadTitle">${t('uploadTitle')}</div><div class="upload-sub" id="uploadSub">${t('uploadSub')}</div>`;
+}
+
+function applyTranslations(){
+  document.documentElement.lang=lang;
+  document.title=t('pageTitle');
+  const ids=['heroTag','heroDesc','stat1','stat2','stat3','stat4','featT1','featS1','featT2','featS2','featT3','featS3','featT4','featS4','tokenHeading','tokenSubmit','tokOk','tokErr','demoTextBefore','demoTextAfter','demoTextFull','langLabel','orDiv','analyzeBtnText','loadingTitle','loadingSub','stepText1','stepText2','stepText3','stepText4','riskHead','obligHead','datesHead','recHead','newContractBtn','copyBtn','chatToggleBtn','chatHead','footerLine1','footerLine2'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
+  const heroTitle=document.getElementById('heroTitle');if(heroTitle)heroTitle.innerHTML=t('heroTitle');
+  const tokenHint=document.getElementById('tokenHint');if(tokenHint)tokenHint.innerHTML=`${t('tokenHintPrefix')} <a id="tgHint" href="${TG_LINK}">@Mluhammadali</a>`;
+  const paste=document.getElementById('pasteArea');
+  if(paste)paste.placeholder=(lang==='uz'?"Bu yerga shartnoma matnini nusxalab joylashtiring...":lang==='ru'?"Вставьте сюда текст договора...":"Paste contract text here...");
+  const chatIn=document.getElementById('chatIn');if(chatIn)chatIn.placeholder=t('chatInputPlaceholder');
+  if(!contractText&&!document.getElementById('uploadZone').classList.contains('has-file'))renderUploadEmpty();
+}
+
+function getUsed(){return parseInt(localStorage.getItem('sh_used')||'0')}
+function incUsed(){localStorage.setItem('sh_used',getUsed()+1);updateUI()}
+function updateUI(){
+  const rem=MAX_FREE-getUsed();
+  const banner=document.getElementById('demoBanner');
+  const cnt=document.getElementById('demoCount');
+  if(isSub){if(banner)banner.style.display='none';return}
+  if(cnt)cnt.textContent=Math.max(0,rem);
+}
+updateUI();
+
+function showTokenSection(){const s=document.getElementById('tokenSection');s.style.display=s.style.display==='block'?'none':'block'}
+function verifyToken(){
+  const v=document.getElementById('tokenInput').value.trim().toUpperCase();
+  const ok=document.getElementById('tokOk'),err=document.getElementById('tokErr');
+  ok.style.display='none';err.style.display='none';
+  if(v.startsWith('SH-')&&v.length>=10){
+    localStorage.setItem('sh_token',v);userToken=v;isSub=true;
+    ok.style.display='flex';updateUI();
+    setTimeout(()=>document.getElementById('tokenSection').style.display='none',1500);
+  }else err.style.display='block';
+}
+function setLang(l,btn){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  applyTranslations();
+}
+function updateCC(){const l=document.getElementById('pasteArea').value.length;document.getElementById('charCount').textContent=l.toLocaleString()+' / 12,000'}
+function showError(m){const b=document.getElementById('errorBox');b.innerHTML='⚠️ '+m;b.classList.add('show')}
+function hideError(){document.getElementById('errorBox').classList.remove('show')}
+
+async function extractPdf(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=async e=>{
+      try{
+        const arr=new Uint8Array(e.target.result);
+        const pdf=await pdfjsLib.getDocument(arr).promise;
+        let txt='';
+        for(let i=1;i<=Math.min(pdf.numPages,15);i++){
+          const pg=await pdf.getPage(i);
+          const ct=await pg.getTextContent();
+          txt+=ct.items.map(s=>s.str).join(' ')+'\n';
         }
+        res(txt.trim());
+      }catch(e){rej(e)}
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
 
-        async function ghostScan() {
-            // Eng muhim o'zgarish: Telegram ID ni to'g'ridan-to'g'ri olish
-            const tgUser = tg.initDataUnsafe?.user;
-            const tgId = tgUser ? tgUser.id : null;
-            
-            if(!tgId) {
-                tg.showAlert("Telegram ma'lumotlari topilmadi. Iltimos panelni bot ichidan oching.");
-                return;
-            }
+function handleFile(event){
+  const file=event.target.files[0];if(!file)return;
+  if(file.size>5*1024*1024){showError(t('fileSizeError'));return}
+  const z=document.getElementById('uploadZone');
+  z.classList.add('has-file');
+  z.innerHTML=`<div class="file-info"><div class="file-ico-wrap">📄</div><div><div class="file-name">${file.name}</div><div class="file-size">${(file.size/1024).toFixed(0)} KB</div></div><span class="file-change" onclick="resetFile()">${t('uploadChange')}</span></div>`;
+  if(file.name.endsWith('.pdf')){
+    extractPdf(file).then(t=>{contractText=t;document.getElementById('pasteArea').value=''}).catch(()=>showError(t('pdfReadError')));
+  }else{
+    const r=new FileReader();
+    r.onload=e=>{contractText=e.target.result;document.getElementById('pasteArea').value=''};
+    r.readAsText(file);
+  }
+}
 
-            tg.showConfirm("Siz rostdan ham darsda emassiz va yordam so'ramoqchimisiz?", async (ok) => {
-                if(ok) {
-                    tg.showAlert("👻 So'rov yuborilmoqda...");
-                    try {
-                        const r = await fetch('/api/ghost_scan', { 
-                            method: 'POST', 
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ telegram_id: tgId }) 
-                        });
-                        const res = await r.json();
-                        if(res.status === 'success') {
-                            tg.showAlert("✅ " + res.message);
-                        } else {
-                            // Agar Premium bo'lmasa, ogohlantirish chiqariladi
-                            tg.showAlert("❌ " + res.message + "\n\nBotdan /premium komandasini yuboring.");
-                        }
-                    } catch(e) { tg.showAlert("Xatolik: Serverga ulanib bo'lmadi!"); }
-                }
-            });
-        }
-    </script>
+function resetFile(){
+  contractText='';
+  const z=document.getElementById('uploadZone');
+  z.classList.remove('has-file');
+  renderUploadEmpty();
+}
+
+const dz=document.getElementById('uploadZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f]}})});
+
+function setStep(n){for(let i=1;i<=4;i++){const el=document.getElementById('step'+i);el.classList.remove('active','done');if(i<n)el.classList.add('done');else if(i===n)el.classList.add('active')}}
+
+const LP={
+  uz:{sys:`Sen tajribali O'zbek yuridik tahlilchisan. Faqat JSON formatda javob ber:\n{"summary":"2-3 gapda xulosa","verdict":"safe|caution|risk","verdictText":"qisqa xulosa","risks":[{"level":"high|medium|low","title":"nomi","band":"iqtibos","explanation":"tushuntirish"}],"obligations":{"party1":{"name":"tomon 1","items":["..."]},"party2":{"name":"tomon 2","items":["..."]}},"dates":[{"emoji":"📅","label":"nomi","value":"qiymat"}],"recommendation":"tavsiya","chatQuestions":["savol 1?","savol 2?","savol 3?"]}`,pfx:"Shartnomani tahlil qil:\n\n",chat:"Sen shartnoma tahlilchisan. Qisqa, aniq, o'zbek tilida javob ber."},
+  ru:{sys:`Ты юридический аналитик. Отвечай ТОЛЬКО в JSON:\n{"summary":"резюме","verdict":"safe|caution|risk","verdictText":"вердикт","risks":[{"level":"high|medium|low","title":"название","band":"цитата","explanation":"объяснение"}],"obligations":{"party1":{"name":"сторона 1","items":["..."]},"party2":{"name":"сторона 2","items":["..."]}},"dates":[{"emoji":"📅","label":"название","value":"значение"}],"recommendation":"рекомендация","chatQuestions":["вопрос 1?","вопрос 2?","вопрос 3?"]}`,pfx:"Проанализируй договор:\n\n",chat:"Ты аналитик договоров. Отвечай кратко."},
+  en:{sys:`You are a contract analyst. Reply ONLY in JSON:\n{"summary":"summary","verdict":"safe|caution|risk","verdictText":"verdict","risks":[{"level":"high|medium|low","title":"name","band":"quote","explanation":"why risky"}],"obligations":{"party1":{"name":"party 1","items":["..."]},"party2":{"name":"party 2","items":["..."]}},"dates":[{"emoji":"📅","label":"name","value":"value"}],"recommendation":"recommendation","chatQuestions":["question 1?","question 2?","question 3?"]}`,pfx:"Analyze this contract:\n\n",chat:"You are a contract analyst. Answer briefly."}
+};
+
+async function callAPI(payload){
+  const headers={'Content-Type':'application/json'};
+  if(userToken)headers['x-user-token']=userToken;
+  const res=await fetch(API_ENDPOINT,{method:'POST',headers,body:JSON.stringify(payload)});
+  const data=await res.json();
+  if(data.error==='token_invalid')throw new Error(t('invalidTokenError'));
+  if(!res.ok)throw new Error(data.message||'Server xatoligi: '+res.status);
+  return data;
+}
+
+async function analyze(){
+  hideError();
+  const paste=document.getElementById('pasteArea').value.trim();
+  const text=contractText||paste;
+  if(!text||text.length<50){showError(t('emptyInputError'));return}
+  if(!isSub&&getUsed()>=MAX_FREE){document.getElementById('paywallModal').classList.add('show');return}
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('loadingState').classList.add('show');
+  document.getElementById('resultsSection').classList.remove('show');
+  setStep(1);await delay(700);setStep(2);
+  const p=LP[lang];
+  try{
+    const data=await callAPI({system:p.sys,messages:[{role:'user',content:p.pfx+text.slice(0,12000)}],maxTokens:2500});
+    setStep(3);await delay(500);
+    const raw=data.content[0].text;
+    let r;try{r=JSON.parse(raw.replace(/```json|```/g,'').trim())}catch(e){throw new Error("AI javobi formatsiz. Qayta urinib ko'ring.")}
+    setStep(4);await delay(300);
+    if(!isSub)incUsed();
+    chatHistory=[{role:'user',content:p.pfx+text.slice(0,12000)},{role:'assistant',content:raw}];
+    lastResult=r;
+    renderResults(r);
+  }catch(err){
+    document.getElementById('loadingState').classList.remove('show');
+    document.getElementById('analyzeBtn').disabled=false;
+    showError(err.message);
+  }
+}
+
+function renderResults(r){
+  document.getElementById('loadingState').classList.remove('show');
+  document.getElementById('analyzeBtn').disabled=false;
+  const vmap={safe:['vs','ps','✅'],caution:['vc','pc','⚠️'],risk:['vr','pr','🚨']};
+  const [vcls,pcls,ico]=vmap[r.verdict]||vmap.caution;
+  document.getElementById('verdictCard').innerHTML=`<div class="verdict-card ${vcls}"><div class="vtop"><div class="vico">${ico}</div><div><div class="vh">${lang==='uz'?'Tahlil natijasi':lang==='ru'?'Результат анализа':'Analysis result'}</div><div class="vp">${r.summary}</div><span class="vpill ${pcls}">${ico} ${r.verdictText}</span></div></div></div>`;
+  document.getElementById('riskList').innerHTML=(r.risks||[]).map((rk,i)=>{
+    const lmap={high:['rh','rbh','YUQORI'],medium:['rm','rbm',"O'RTA"],low:['rl','rbl','PAST']};
+    const [rcls,bcls,lbl]=lmap[rk.level]||lmap.medium;
+    return `<div class="risk-card ${rcls}" style="animation-delay:${i*.08}s"><div class="risk-top"><span class="rbadge ${bcls}">${lbl}</span><span class="rtitle">${rk.title}</span></div>${rk.band?`<div class="rquote">"${rk.band}"</div>`:''}<div class="rexp">${rk.explanation}</div></div>`;
+  }).join('')||`<p style="color:var(--text3);font-size:13px;padding:.5rem 0">${t('noRisks')}</p>`;
+  const ob=r.obligations||{},p1=ob.party1||{},p2=ob.party2||{};
+  document.getElementById('obligGrid').innerHTML=`<div class="oblig-box"><div class="oblig-title">👤 ${p1.name||t('party1')}</div>${(p1.items||[]).map(i=>`<div class="oblig-item"><div class="oblig-dot"></div>${i}</div>`).join('')}</div><div class="oblig-box"><div class="oblig-title">👤 ${p2.name||t('party2')}</div>${(p2.items||[]).map(i=>`<div class="oblig-item"><div class="oblig-dot"></div>${i}</div>`).join('')}</div>`;
+  document.getElementById('datesList').innerHTML=(r.dates||[]).map(d=>`<div class="date-item"><span class="date-emoji">${d.emoji||'📅'}</span><div class="date-label">${d.label}</div><div class="date-val">${d.value}</div></div>`).join('')||`<p style="color:var(--text3);font-size:13px">${t('noDates')}</p>`;
+  const rmap={safe:'rec-safe',caution:'rec-caution',risk:'rec-risk'};
+  document.getElementById('recBox').innerHTML=`<div class="rec-box ${rmap[r.verdict]||rmap.caution}"><div class="rec-title">${vmap[r.verdict]?.[2]||'⚠️'} ${t('recommendation')}</div><div class="rec-text">${r.recommendation}</div></div>`;
+  document.getElementById('sampleQs').innerHTML=(r.chatQuestions||[]).map(q=>`<button class="sample-q" onclick="askQ(this)">${q}</button>`).join('');
+  document.getElementById('resultsSection').classList.add('show');
+  document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function resetAll(){
+  ['resultsSection','chatSection','loadingState'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  document.getElementById('pasteArea').value='';
+  contractText='';chatHistory=[];lastResult=null;
+  resetFile();hideError();
+  document.getElementById('analyzeBtn').disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyReport(){
+  if(!lastResult)return;
+  const r=lastResult;
+  let rep=`${t('reportTitle')}\n${'─'.repeat(40)}\n\n${r.summary}\n${t('reportVerdict')}: ${r.verdictText}\n\n${t('reportRisks')}:\n`;
+  (r.risks||[]).forEach(rk=>rep+=`\n[${rk.level.toUpperCase()}] ${rk.title}\n${rk.explanation}\n`);
+  rep+=`\n${t('reportRecommendation')}:\n${r.recommendation}`;
+  navigator.clipboard.writeText(rep).then(()=>{const btn=event.currentTarget;const old=btn.innerHTML;btn.innerHTML=t('copySuccess');setTimeout(()=>btn.innerHTML=old,2000)});
+}
+
+function toggleChat(){document.getElementById('chatSection').classList.toggle('show')}
+function askQ(btn){document.getElementById('chatIn').value=btn.textContent;sendChat()}
+
+async function sendChat(){
+  const inp=document.getElementById('chatIn');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  const msgs=document.getElementById('chatMsgs');
+  msgs.innerHTML+=`<div class="chat-msg user">${msg}</div>`;
+  chatHistory.push({role:'user',content:msg});
+  const t=document.createElement('div');t.className='chat-msg ai';t.textContent='...';
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const data=await callAPI({system:LP[lang].chat,messages:chatHistory,maxTokens:600});
+    const reply=data.content[0].text;
+    chatHistory.push({role:'assistant',content:reply});
+    t.textContent=reply;msgs.scrollTop=msgs.scrollHeight;
+  }catch(e){t.textContent=t('chatErrorPrefix')+' '+e.message}
+}
+
+function selPlan(el,plan){document.querySelectorAll('.modal-plan').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');selPlanKey=plan}
+function goToPay(){window.open(TG_LINK,'_blank');closeModal()}
+function closeModal(){document.getElementById('paywallModal').classList.remove('show')}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function toggleFaq(btn){
+  const item=btn.closest('.faq-item');
+  if(!item)return;
+  item.classList.toggle('open');
+}
+function initReveal(){
+  const els=[...document.querySelectorAll('.reveal')];
+  if(!els.length)return;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')});
+  },{threshold:.12});
+  els.forEach(el=>io.observe(el));
+}
+initReveal();
+setLang('uz',document.querySelector(".lang-btn.active"));
+</script>
 </body>
 </html>
