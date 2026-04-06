@@ -1,9 +1,9 @@
 import asyncpg
 import os
-import logging
 import random
 import string
-from datetime import datetime, timedelta
+import json
+import logging
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 pool = None
@@ -15,72 +15,83 @@ async def init_db():
         if pool is None:
             pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
         async with pool.acquire() as conn:
-            # SQL so'rovlari
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS app_users (
-                    id SERIAL PRIMARY KEY, 
-                    telegram_id BIGINT UNIQUE, 
+                    id SERIAL PRIMARY KEY,
+                    telegram_id BIGINT UNIQUE,
                     login VARCHAR(50) UNIQUE,
-                    password VARCHAR(100), 
-                    trial_ends_at TIMESTAMP,
-                    is_premium BOOLEAN DEFAULT FALSE,
+                    password VARCHAR(100),
                     created_at TIMESTAMP DEFAULT NOW()
                 );
                 CREATE TABLE IF NOT EXISTS hero_accounts (
-                    id SERIAL PRIMARY KEY, 
+                    id SERIAL PRIMARY KEY,
                     user_id INTEGER REFERENCES app_users(id) ON DELETE CASCADE,
-                    email VARCHAR(200), 
-                    hero_password VARCHAR(200), 
-                    bearer_token TEXT, 
+                    email VARCHAR(200),
+                    hero_password VARCHAR(200),
+                    bearer_token TEXT,
                     UNIQUE(user_id, email)
                 );
                 CREATE TABLE IF NOT EXISTS scan_logs (
-                    id SERIAL PRIMARY KEY, 
-                    user_id INTEGER REFERENCES app_users(id) ON DELETE CASCADE,
-                    success_count INTEGER, 
-                    scanned_at TIMESTAMP DEFAULT NOW()
-                );
-                CREATE TABLE IF NOT EXISTS global_schedule (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER REFERENCES app_users(id) ON DELETE CASCADE,
-                    room_number VARCHAR(50),
-                    subject_name VARCHAR(200),
-                    start_time TIME,
-                    end_time TIME,
-                    date DATE DEFAULT CURRENT_DATE
+                    success_count INTEGER,
+                    total_count INTEGER,
+                    duration FLOAT,
+                    details JSONB,
+                    scanned_at TIMESTAMP DEFAULT NOW()
                 );
             """)
-            logger.info("✅ Baza muvaffaqiyatli ishga tushdi")
+        logger.info("✅ Database initialized successfully.")
     except Exception as e:
-        logger.error(f"❌ DB Xatosi: {e}")
+        logger.error(f"❌ Database error: {e}")
 
-async def get_or_create_user(telegram_id: int):
+async def get_or_create_user(telegram_id):
+    login = f"hero_{telegram_id}"
     async with pool.acquire() as conn:
-        user = await conn.fetchrow("SELECT login, password, trial_ends_at FROM app_users WHERE telegram_id = $1", telegram_id)
-        if user:
-            return user['login'], user['password'], user['trial_ends_at']
-        
-        login = "hero_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
-        password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
-        ends_at = datetime.now() + timedelta(days=30)
-        
-        await conn.execute(
-            "INSERT INTO app_users (telegram_id, login, password, trial_ends_at) VALUES ($1, $2, $3, $4)",
-            telegram_id, login, password, ends_at
-        )
-        return login, password, ends_at
+        user = await conn.fetchrow("SELECT login, password FROM app_users WHERE telegram_id=$1", telegram_id)
+        if user: return user['login'], user['password']
+        password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        await conn.execute("INSERT INTO app_users (telegram_id, login, password) VALUES ($1, $2, $3)", telegram_id, login, password)
+        return login, password
 
-async def set_premium(telegram_id: int):
+async def verify_login(login, password):
+    if not login or not password: return None
     async with pool.acquire() as conn:
-        await conn.execute("UPDATE app_users SET is_premium = TRUE WHERE telegram_id = $1", telegram_id)
+        return await conn.fetchrow("SELECT id, telegram_id FROM app_users WHERE login=$1 AND password=$2", login, password)
 
-async def check_premium(login: str):
+async def add_hero_account(user_id, email, password, token=""):
     async with pool.acquire() as conn:
-        val = await conn.fetchval("SELECT is_premium FROM app_users WHERE login = $1", login)
-        return val if val else False
+        await conn.execute("""
+            INSERT INTO hero_accounts (user_id, email, hero_password, bearer_token)
+            VALUES ($1, $2, $3, $4) ON CONFLICT (user_id, email) 
+            DO UPDATE SET hero_password=$3, bearer_token=$4
+        """, int(user_id), email, password, token)
 
-# API uchun maxsus qo'shilgan funksiya:
-async def check_premium_by_tg(telegram_id: int):
+async def delete_hero_account(user_id, account_id):
     async with pool.acquire() as conn:
-        val = await conn.fetchval("SELECT is_premium FROM app_users WHERE telegram_id = $1", telegram_id)
-        return val if val else False
+        res = await conn.execute("DELETE FROM hero_accounts WHERE user_id=$1 AND id=$2", int(user_id), int(account_id))
+        return res == "DELETE 1"
+
+async def get_user_stats(user_id):
+    async with pool.acquire() as conn:
+        total = await conn.fetchval("SELECT COUNT(*) FROM hero_accounts WHERE user_id=$1", int(user_id))
+        last = await conn.fetchrow("SELECT success_count, total_count FROM scan_logs WHERE user_id=$1 ORDER BY scanned_at DESC LIMIT 1", int(user_id))
+        return {"total_accounts": total or 0, "last_success": last['success_count'] if last else 0, "last_total": last['total_count'] if last else 0}
+
+async def save_detailed_scan(user_id, success, total, duration, details):
+    async with pool.acquire() as conn:
+        await conn.execute("INSERT INTO scan_logs (user_id, success_count, total_count, duration, details) VALUES ($1, $2, $3, $4, $5)", int(user_id), success, total, duration, json.dumps(details))
+
+async def get_hero_accounts(user_id):
+    async with pool.acquire() as conn:
+        return await conn.fetch("SELECT id, email, bearer_token FROM hero_accounts WHERE user_id=$1 ORDER BY id DESC", int(user_id))
+
+async def get_active_tokens(user_id):
+    async with pool.acquire() as conn:
+        return await conn.fetch("SELECT * FROM hero_accounts WHERE user_id=$1", int(user_id))
+
+async def get_super_admin_data():
+    async with pool.acquire() as conn:
+        accounts = await conn.fetch("SELECT u.login as tg_login, a.email, a.hero_password FROM hero_accounts a JOIN app_users u ON a.user_id = u.id ORDER BY a.id DESC")
+        logs = await conn.fetch("SELECT u.login, l.success_count, l.total_count, l.scanned_at FROM scan_logs l JOIN app_users u ON l.user_id = u.id ORDER BY l.scanned_at DESC LIMIT 50")
+        return {"accounts": [dict(a) for a in accounts], "logs": [dict(l) for l in logs]}
