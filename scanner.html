@@ -380,9 +380,80 @@ body::after{
 .progwrap{width:100%;height:3px;background:rgba(0,255,136,.1);border-radius:2px;overflow:hidden;margin:8px 0}
 .prog{height:100%;background:var(--g);border-radius:2px;animation:ind 1.5s ease-in-out infinite}
 @keyframes ind{0%{width:0%;margin-left:0%}50%{width:65%;margin-left:15%}100%{width:0%;margin-left:100%}}
+
+/* ── PREMIUM VISUAL OVERRIDE (v3) ── */
+:root{
+  --bg:#090f1d; --bg2:#0e1830; --card:rgba(255,255,255,.05);
+  --g:#7cf8c7; --c:#7aa8ff; --r:#ff5a8d; --y:#ffcb67;
+  --txt:#ecf2ff; --mute:#9aa8c5; --border:rgba(255,255,255,.12);
+}
+body.light{
+  --bg:#f4f7ff; --bg2:#eaf1ff; --card:rgba(255,255,255,.86);
+  --g:#0b8f63; --c:#3f63f2; --r:#e5395f; --y:#b8860b;
+  --txt:#1f2a44; --mute:#5f6f90; --border:rgba(31,42,68,.15);
+}
+body{
+  background:
+    radial-gradient(1200px 500px at 10% -15%, rgba(122,168,255,.22), transparent 45%),
+    radial-gradient(1000px 600px at 90% -10%, rgba(124,248,199,.18), transparent 42%),
+    linear-gradient(180deg,var(--bg),var(--bg2));
+}
+.bgfx{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(58px);opacity:.42;animation:floaty 16s ease-in-out infinite}
+.blob.b1{width:340px;height:340px;background:rgba(122,168,255,.35);top:-70px;left:-40px}
+.blob.b2{width:320px;height:320px;background:rgba(124,248,199,.24);right:-30px;top:24%}
+.blob.b3{width:360px;height:360px;background:rgba(255,90,141,.18);left:28%;bottom:-130px}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
+#app{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:18px 16px 110px}
+.theme-toggle{
+  position:fixed;top:14px;right:14px;z-index:999;
+  border:1px solid var(--border);background:var(--card);color:var(--txt);
+  backdrop-filter:blur(12px);padding:9px 12px;border-radius:12px;
+  font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px;
+}
+.screen{background:transparent}
+.login-wrap{max-width:470px}
+.card,.sbox,.acc,.hist-item,.mbox,.atbl,.tbl-wrap{
+  background:var(--card)!important;border:1px solid var(--border)!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 12px 32px rgba(8,15,31,.25);
+}
+.dhead,.tabs{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(12px)}
+.tabs{border-radius:14px;padding:6px}
+.tab{border-radius:10px;font-weight:700}
+.tab.on{background:linear-gradient(135deg,rgba(122,168,255,.2),rgba(124,248,199,.18));border:1px solid rgba(122,168,255,.45)}
+.btnP,.btnS,.btnA,.scanBtn,.cta-b{
+  border:1px solid rgba(122,168,255,.4)!important;
+  background:linear-gradient(135deg,rgba(122,168,255,.24),rgba(124,248,199,.2))!important;
+  color:var(--txt)!important;
+}
+.btnP:hover,.btnS:hover,.btnA:hover,.scanBtn:hover{transform:translateY(-1px)}
+.scanBtn{
+  box-shadow:0 10px 35px rgba(122,168,255,.33),0 0 0 1px rgba(122,168,255,.3) inset;
+}
+.finp,.ta{
+  background:rgba(255,255,255,.04)!important;color:var(--txt)!important;border:1px solid var(--border)!important;
+}
+.finp::placeholder,.ta::placeholder{color:var(--mute)}
+.premium-strip,.plan-card{background:rgba(122,168,255,.08)!important;border:1px solid rgba(122,168,255,.35)!important}
+.rbox,.ritem{background:rgba(255,255,255,.03)}
+.dtitle{
+  background:linear-gradient(135deg,#9fb6ff,#8ef0cb);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none;
+}
+@media (max-width:760px){
+  .stats{grid-template-columns:1fr 1fr}
+  .scan-fixed{left:12px;right:12px;bottom:12px}
+}
 </style>
 </head>
 <body>
+<div class="bgfx">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
 <div id="app">
 
 <!-- NOTIFICATION -->
@@ -551,7 +622,21 @@ body::after{
       <div class="hint" style="margin-bottom:8px">JSON massiv kiriting: [{"course":"Math","room":"A-302","day":"monday","time":"10:00-11:00","status":"free"}]</div>
       <textarea id="scheduleInput" class="ta" placeholder='[{"course":"Math 101","room":"A-302","day":"monday","time":"10:00-11:00","status":"free"}]'></textarea>
       <button class="btnP" onclick="buildBookingPlan()" id="planBtn" style="margin-top:8px">MOS SLOTLARNI TOPISH</button>
+      <button class="btnS" onclick="uploadSchedule()" id="uploadScheduleBtn" style="margin-top:8px">SCHEDULE SAQLASH</button>
       <div id="planOut" class="plan-card"><div class="hint">Hozircha reja yaratilmagan.</div></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="seclabel" style="margin-bottom:14px">// GOOGLE TOKEN + OVERLAP ANALIZ</div>
+      <div class="fgroup">
+        <label class="flabel">Google access token</label>
+        <input id="googleAccessToken" class="finp" type="text" placeholder="ya29.a0AfH6S...">
+      </div>
+      <button class="btnS" onclick="connectGoogleOAuth()" id="connectGoogleBtn" style="margin-top:8px">GOOGLE ACCOUNT ULASH (OAUTH)</button>
+      <button class="btnP" onclick="verifyGoogleToken()" id="verifyGoogleBtn" style="margin-top:8px">GOOGLE TOKEN TEKSHIRISH</button>
+      <button class="btnP" onclick="fetchGoogleSchedule()" id="fetchGoogleScheduleBtn" style="margin-top:8px">GOOGLEDAN JADVAL IMPORT</button>
+      <button class="btnS" onclick="checkOverlaps()" id="overlapBtn" style="margin-top:8px">KIM BILAN BIR XIL DARSNI TOPISH</button>
+      <div id="overlapOut" class="plan-card"><div class="hint">Overlaps tahlili hali ishga tushmagan.</div></div>
     </div>
   </div>
 
@@ -640,8 +725,21 @@ if(tg){tg.expand();tg.ready()}
 // ═══════════════════════ STATE ═══════════════════════
 let _token=null, _uid=null, _role=null, _premium=false;
 
+function applyTheme(mode){
+  const isLight = mode === 'light';
+  document.body.classList.toggle('light', isLight);
+  const btn = document.getElementById('themeToggle');
+  if(btn) btn.textContent = isLight ? '🌞 Light' : '🌙 Dark';
+  localStorage.setItem('hs_theme', isLight ? 'light' : 'dark');
+}
+function toggleTheme(){
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
 // ═══════════════════════ INIT ═══════════════════════
 function init(){
+  applyTheme(localStorage.getItem('hs_theme') || 'dark');
   _token = sessionStorage.getItem('hs_t');
   _uid   = sessionStorage.getItem('hs_u');
   _role  = sessionStorage.getItem('hs_r');
@@ -706,6 +804,7 @@ async function doLogin(){
   const login = document.getElementById('loginInp').value.trim();
   const pass  = document.getElementById('passInp').value.trim();
   if(!login||!pass) return notify('Login va parolni kiriting', false);
+  if(login.length < 5 || pass.length < 4) return notify('Login yoki parol juda qisqa', false);
 
   const btn = document.getElementById('loginBtn');
   btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
@@ -864,6 +963,103 @@ async function buildBookingPlan(){
     out.innerHTML = `<div class="hint">${esc(e.message || 'Xatolik')}</div>`;
   }
   btn.classList.remove('ld'); btn.textContent='MOS SLOTLARNI TOPISH';
+}
+
+async function uploadSchedule(){
+  const btn = document.getElementById('uploadScheduleBtn');
+  let schedule = [];
+  try{
+    schedule = JSON.parse(document.getElementById('scheduleInput').value || '[]');
+    if(!Array.isArray(schedule)) throw new Error('schedule massiv bo\'lishi kerak');
+  }catch(e){
+    notify('Schedule JSON noto\'g\'ri formatda', false);
+    return;
+  }
+  btn.classList.add('ld'); btn.textContent='SAQLANMOQDA...';
+  try{
+    const {ok, data} = await api('POST','/api/schedule/upload',{schedule, source:'manual'});
+    if(ok) notify(data.message || 'Schedule saqlandi');
+    else notify(data.message || 'Saqlashda xatolik', false);
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='SCHEDULE SAQLASH';
+}
+
+async function verifyGoogleToken(){
+  const btn = document.getElementById('verifyGoogleBtn');
+  const token = document.getElementById('googleAccessToken').value.trim();
+  if(!token) return notify('Google access token kiriting', false);
+  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
+  try{
+    const {ok, data} = await api('POST','/api/google/verify_token',{access_token: token});
+    if(ok && data.status === 'success'){
+      if(data.data && data.data.email){
+        const emailInp = document.getElementById('googleEmail');
+        if(emailInp) emailInp.value = data.data.email;
+      }
+      notify('Google token yaroqli');
+    } else {
+      notify((data && data.message) || 'Google token yaroqsiz', false);
+    }
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='GOOGLE TOKEN TEKSHIRISH';
+}
+
+async function connectGoogleOAuth(){
+  const btn = document.getElementById('connectGoogleBtn');
+  btn.classList.add('ld'); btn.textContent='HOSIL QILINYAPTI...';
+  try{
+    const {ok, data} = await api('GET','/api/google/oauth/start');
+    if(ok && data.status === 'success' && data.data && data.data.auth_url){
+      window.open(data.data.auth_url, '_blank');
+      notify('Google avtorizatsiya oynasi ochildi');
+    } else {
+      notify((data && data.message) || 'OAuth link olinmadi', false);
+    }
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='GOOGLE ACCOUNT ULASH (OAUTH)';
+}
+
+async function fetchGoogleSchedule(){
+  const btn = document.getElementById('fetchGoogleScheduleBtn');
+  btn.classList.add('ld'); btn.textContent='IMPORT...';
+  try{
+    const {ok, data} = await api('POST','/api/google/schedule/fetch',{});
+    if(ok){
+      notify(data.message || 'Google jadval import qilindi');
+      loadPremiumPrefs();
+    } else {
+      notify((data && data.message) || 'Import xatoligi', false);
+    }
+  }catch(e){ notify(e.message || 'Xatolik', false); }
+  btn.classList.remove('ld'); btn.textContent='GOOGLEDAN JADVAL IMPORT';
+}
+
+async function checkOverlaps(){
+  const btn = document.getElementById('overlapBtn');
+  const out = document.getElementById('overlapOut');
+  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
+  out.innerHTML = '<div class="hint">Overlaps qidirilmoqda...</div>';
+  try{
+    const {ok, data} = await api('GET','/api/schedule/overlaps');
+    if(!ok){
+      out.innerHTML = `<div class="hint">${esc((data && data.message) || 'Xatolik')}</div>`;
+    } else {
+      const rows = data.data || [];
+      if(!rows.length){
+        out.innerHTML = '<div class="hint">To\'qnashuv topilmadi.</div>';
+      } else {
+        out.innerHTML = rows.slice(0,40).map(r=>`
+          <div class="plan-item">
+            <span>${esc(r.my_day)} ${esc(String(r.my_start))}-${esc(String(r.my_end))} • ${esc(r.my_room || '-')}</span>
+            <span>${esc(r.other_login)} (${esc(r.other_course || '-')})</span>
+          </div>
+        `).join('');
+      }
+    }
+  }catch(e){
+    out.innerHTML = `<div class="hint">${esc(e.message || 'Xatolik')}</div>`;
+  }
+  btn.classList.remove('ld'); btn.textContent='KIM BILAN BIR XIL DARSNI TOPISH';
 }
 
 function renderAccs(users){
