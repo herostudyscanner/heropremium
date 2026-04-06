@@ -30,6 +30,7 @@ WEBAPP_URL  = f"https://{raw_url.replace('https://','').replace('http://','')}" 
 PORT        = int(os.getenv("PORT", 8080))
 JWT_SECRET  = os.getenv("JWT_SECRET", "change-me-in-production-use-random-string")
 JWT_EXPIRE_HOURS = 24
+PREMIUM_ACTIVATION_CODE = os.getenv("PREMIUM_ACTIVATION_CODE", "")
 
 bot = Bot(token=BOT_TOKEN) if BOT_TOKEN else None
 dp  = Dispatcher()
@@ -109,6 +110,60 @@ def validate_url(url: str) -> bool:
 def get_client_ip(request: web.Request) -> str:
     return request.headers.get("X-Forwarded-For", request.remote or "unknown").split(",")[0].strip()
 
+
+def is_user_premium(profile: dict | None) -> bool:
+    if not profile:
+        return False
+    if not profile.get("is_premium"):
+        return False
+    until = profile.get("premium_until")
+    if not until:
+        return True
+    if isinstance(until, str):
+        try:
+            until = datetime.fromisoformat(until)
+        except ValueError:
+            return False
+    return until > datetime.now()
+
+
+def parse_time_to_minutes(value: str) -> tuple[int, int] | None:
+    if not value or "-" not in value:
+        return None
+    try:
+        start, end = value.split("-", 1)
+        sh, sm = [int(x) for x in start.strip().split(":", 1)]
+        eh, em = [int(x) for x in end.strip().split(":", 1)]
+        return sh * 60 + sm, eh * 60 + em
+    except Exception:
+        return None
+
+
+def schedule_matches_pref(slot: dict, pref: dict) -> bool:
+    course = (pref.get("preferred_course") or "").strip().lower()
+    room = (pref.get("preferred_room") or "").strip().lower()
+    days = {d.strip().lower() for d in (pref.get("preferred_days") or "").split(",") if d.strip()}
+    tr = parse_time_to_minutes(pref.get("preferred_time_range") or "")
+
+    slot_course = str(slot.get("course", "")).lower()
+    slot_room = str(slot.get("room", "")).lower()
+    slot_day = str(slot.get("day", "")).lower()
+    slot_time = str(slot.get("time", ""))
+    slot_minutes = parse_time_to_minutes(slot_time)
+
+    if course and course not in slot_course:
+        return False
+    if room and room not in slot_room:
+        return False
+    if days and slot_day not in days:
+        return False
+    if tr and slot_minutes:
+        start, end = tr
+        s2, e2 = slot_minutes
+        if s2 < start or e2 > end:
+            return False
+    return True
+
 # ─── ROUTE HANDLERS ───────────────────────────────────────────────────────────
 
 async def auth_login(request: web.Request):
@@ -136,7 +191,14 @@ async def auth_login(request: web.Request):
 
     role  = "super_admin" if user["telegram_id"] == ADMIN_ID else "user"
     token = create_token(user["id"], user["telegram_id"], role)
-    return web.json_response({"status": "success", "token": token, "user_id": user["id"], "role": role})
+    profile = await db.get_user_profile(user["id"])
+    return web.json_response({
+        "status": "success",
+        "token": token,
+        "user_id": user["id"],
+        "role": role,
+        "premium": is_user_premium(profile),
+    })
 
 
 async def get_users_list(request: web.Request):
@@ -185,6 +247,128 @@ async def get_stats(request: web.Request):
     user = request["user"]
     stats = await db.get_user_stats(user["user_id"])
     return web.json_response({"status": "success", "data": stats})
+
+
+async def get_premium_status(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    premium = is_user_premium(profile)
+    return web.json_response({
+        "status": "success",
+        "data": {
+            "is_premium": premium,
+            "premium_until": profile.get("premium_until").isoformat() if profile and profile.get("premium_until") else None,
+            "google_email": profile.get("google_email") if profile else None,
+            "timezone": profile.get("timezone") if profile else "Asia/Tashkent",
+        }
+    })
+
+
+async def activate_premium(request: web.Request):
+    user = request["user"]
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"status": "error", "message": "JSON xatosi"}, status=400)
+
+    code = str(data.get("code", "")).strip()
+    days = int(data.get("days", 30) or 30)
+    if days <= 0 or days > 365:
+        days = 30
+
+    # Super admin can activate directly without code.
+    if user.get("role") != "super_admin":
+        if not PREMIUM_ACTIVATION_CODE:
+            return web.json_response({"status": "error", "message": "Premium kod serverda sozlanmagan"}, status=500)
+        if code != PREMIUM_ACTIVATION_CODE:
+            return web.json_response({"status": "error", "message": "Premium kod noto'g'ri"}, status=403)
+
+    await db.activate_premium(user["user_id"], days=days)
+    return web.json_response({"status": "success", "message": f"Premium {days} kunga yoqildi"})
+
+
+async def get_schedule_preferences(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    pref = await db.get_schedule_preferences(user["user_id"])
+    data = pref or {}
+    data["google_email"] = profile.get("google_email") if profile else None
+    data["timezone"] = profile.get("timezone") if profile else "Asia/Tashkent"
+    return web.json_response({"status": "success", "data": data})
+
+
+async def save_schedule_preferences(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"status": "error", "message": "JSON xatosi"}, status=400)
+
+    google_email = str(data.get("google_email", "")).strip()
+    tz_name = str(data.get("timezone", "Asia/Tashkent")).strip()[:64] or "Asia/Tashkent"
+    preferred_course = str(data.get("preferred_course", "")).strip()[:120]
+    preferred_room = str(data.get("preferred_room", "")).strip()[:120]
+    preferred_days = str(data.get("preferred_days", "")).strip()[:80]
+    preferred_time_range = str(data.get("preferred_time_range", "")).strip()[:40]
+    notes = str(data.get("notes", "")).strip()[:1200]
+
+    if google_email and not validate_email(google_email):
+        return web.json_response({"status": "error", "message": "Google email noto'g'ri"}, status=400)
+
+    await db.save_google_profile(user["user_id"], google_email, tz_name)
+    await db.upsert_schedule_preferences(
+        user["user_id"], preferred_course, preferred_room, preferred_days, preferred_time_range, notes
+    )
+    return web.json_response({"status": "success", "message": "Premium jadval sozlamalari saqlandi"})
+
+
+async def build_schedule_plan(request: web.Request):
+    user = request["user"]
+    profile = await db.get_user_profile(user["user_id"])
+    if not is_user_premium(profile):
+        return web.json_response({"status": "error", "message": "Bu bo'lim faqat premium uchun"}, status=403)
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"status": "error", "message": "JSON xatosi"}, status=400)
+
+    pref = await db.get_schedule_preferences(user["user_id"]) or {}
+    schedule = data.get("schedule", [])
+    if not isinstance(schedule, list):
+        return web.json_response({"status": "error", "message": "schedule massiv bo'lishi kerak"}, status=400)
+
+    # Basic planner: find free slots that match user preferences.
+    candidates = []
+    for slot in schedule:
+        if not isinstance(slot, dict):
+            continue
+        status = str(slot.get("status", "")).lower()
+        if status and status not in {"free", "available", "open"}:
+            continue
+        if schedule_matches_pref(slot, pref):
+            candidates.append({
+                "course": slot.get("course"),
+                "room": slot.get("room"),
+                "day": slot.get("day"),
+                "time": slot.get("time"),
+                "reason": "matched_preferences"
+            })
+        if len(candidates) >= 5:
+            break
+
+    result = {
+        "total_input": len(schedule),
+        "suggested": candidates,
+        "message": "Mos bo'sh slotlar topildi" if candidates else "Mos slot topilmadi, preferensiyani kengaytiring",
+        "next_step": "Topilgan slotni tanlab booking API ga yuborish mumkin"
+    }
+    await db.save_booking_plan(user["user_id"], {"schedule_count": len(schedule), "pref": pref}, result, status="planned")
+    return web.json_response({"status": "success", "data": result})
 
 
 async def get_history(request: web.Request):
@@ -293,6 +477,11 @@ async def main():
     app.router.add_post("/api/users/add",      add_user)
     app.router.add_post("/api/users/delete",   delete_user)
     app.router.add_get("/api/stats",           get_stats)
+    app.router.add_get("/api/premium/status",  get_premium_status)
+    app.router.add_post("/api/premium/activate", activate_premium)
+    app.router.add_get("/api/schedule/preferences", get_schedule_preferences)
+    app.router.add_post("/api/schedule/preferences", save_schedule_preferences)
+    app.router.add_post("/api/schedule/plan", build_schedule_plan)
     app.router.add_get("/api/history",         get_history)
     app.router.add_post("/api/scan",           do_scan)
     app.router.add_get("/api/admin/all_data",  get_admin_all_data)
