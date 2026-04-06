@@ -3,7 +3,6 @@ import os
 import logging
 import random
 import string
-import json
 from datetime import datetime, timedelta
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -16,7 +15,7 @@ async def init_db():
         if pool is None:
             pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
         async with pool.acquire() as conn:
-            # SQL so'rovlari (Sharhlarsiz toza holatda)
+            # SQL so'rovlari
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS app_users (
                     id SERIAL PRIMARY KEY, 
@@ -80,11 +79,8 @@ async def check_premium(login: str):
         val = await conn.fetchval("SELECT is_premium FROM app_users WHERE login = $1", login)
         return val if val else False
 
-# Panel uchun ma'lumotlarni olish (Agar main.py da kerak bo'lsa)
-async def get_user_data(login: str):
+# API uchun maxsus qo'shilgan funksiya:
+async def check_premium_by_tg(telegram_id: int):
     async with pool.acquire() as conn:
-        return await conn.fetchrow("SELECT * FROM app_users WHERE login = $1", login)
-
-async def get_user_accounts(user_id: int):
-    async with pool.acquire() as conn:
-        return await conn.fetch("SELECT * FROM hero_accounts WHERE user_id = $1", user_id)
+        val = await conn.fetchval("SELECT is_premium FROM app_users WHERE telegram_id = $1", telegram_id)
+        return val if val else False
