@@ -573,6 +573,234 @@ async def google_oauth_callback(request: web.Request):
         return web.Response(text=f"Google callback xatoligi: {e}", status=500)
 
 
+HERO_SCHEDULE_URL = "https://api.newuzbekistan.hero.study/v1/schedule/list"
+HERO_SCHEDULE_PARAMS = {
+    "beginTime": "1771700400",
+    "endTime":   "1775588399",
+    "lang":      "en",
+}
+
+# ─── HERO SCHEDULE FIELD NORMALIZER ───────────────────────────────────────────
+
+def _parse_hero_time(start_raw, end_raw) -> tuple[int, int] | None:
+    """Convert various Hero API time formats to (start_min, end_min)."""
+    try:
+        def to_min(v) -> int:
+            if isinstance(v, int):
+                # Unix timestamp → minutes since midnight
+                dt = datetime.fromtimestamp(v)
+                return dt.hour * 60 + dt.minute
+            s = str(v).strip()
+            if ":" in s:
+                parts = s.split(":")
+                return int(parts[0]) * 60 + int(parts[1])
+            return int(s)
+        s = to_min(start_raw)
+        e = to_min(end_raw)
+        if e > s:
+            return s, e
+    except Exception:
+        pass
+    return None
+
+
+def _normalize_hero_slot(item: dict) -> dict | None:
+    """Map Hero API schedule item → internal slot dict."""
+    if not isinstance(item, dict):
+        return None
+
+    # ── time ──
+    start_raw = (
+        item.get("startTime") or item.get("start_time") or item.get("start") or
+        item.get("beginTime") or item.get("begin_time") or item.get("timeStart") or
+        item.get("lessonStart") or ""
+    )
+    end_raw = (
+        item.get("endTime") or item.get("end_time") or item.get("end") or
+        item.get("finishTime") or item.get("finish_time") or item.get("timeEnd") or
+        item.get("lessonEnd") or ""
+    )
+    # Fallback: combined "HH:MM-HH:MM" field
+    if not start_raw or not end_raw:
+        combined = str(item.get("time", "") or item.get("lessonTime", "") or "").strip()
+        if "-" in combined:
+            parts = combined.split("-", 1)
+            start_raw, end_raw = parts[0].strip(), parts[1].strip()
+
+    minutes = _parse_hero_time(start_raw, end_raw)
+    if not minutes:
+        return None
+    start_min, end_min = minutes
+
+    # ── day ──
+    day_raw = (
+        item.get("day") or item.get("weekDay") or item.get("week_day") or
+        item.get("dayOfWeek") or item.get("day_of_week") or ""
+    )
+    day = str(day_raw).strip().lower()
+    if not day:
+        # Try to parse from a date field
+        date_raw = (
+            item.get("date") or item.get("lessonDate") or item.get("lesson_date") or ""
+        )
+        if date_raw:
+            try:
+                if isinstance(date_raw, int):
+                    day = datetime.fromtimestamp(date_raw).strftime("%A").lower()
+                else:
+                    day = datetime.fromisoformat(str(date_raw).replace("Z", "+00:00")).strftime("%A").lower()
+            except Exception:
+                pass
+    if not day:
+        return None
+
+    # ── other fields ──
+    course = str(
+        item.get("subject") or item.get("course") or item.get("courseName") or
+        item.get("discipline") or item.get("name") or item.get("title") or ""
+    ).strip()[:160]
+
+    room = str(
+        item.get("room") or item.get("roomName") or item.get("auditorium") or
+        item.get("audience") or item.get("classroom") or item.get("cabinet") or ""
+    ).strip()[:120]
+
+    teacher = str(
+        item.get("teacher") or item.get("teacherName") or item.get("lecturer") or
+        item.get("instructor") or ""
+    ).strip()[:160]
+
+    group_name = str(
+        item.get("group") or item.get("groupName") or item.get("group_name") or
+        item.get("groupCode") or ""
+    ).strip()[:120]
+
+    return {
+        "course":     course or "—",
+        "room":       room,
+        "day":        day[:32],
+        "start_min":  start_min,
+        "end_min":    end_min,
+        "teacher":    teacher,
+        "group_name": group_name,
+        "raw":        item,
+    }
+
+
+def _extract_hero_items(data: dict | list) -> list:
+    """Handle various top-level response shapes."""
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        for key in ("data", "list", "items", "schedule", "lessons", "result", "records"):
+            val = data.get(key)
+            if isinstance(val, list):
+                return val
+        # Sometimes nested under "data.list"
+        nested = data.get("data") or {}
+        if isinstance(nested, dict):
+            for key in ("list", "items", "schedule", "lessons"):
+                val = nested.get(key)
+                if isinstance(val, list):
+                    return val
+    return []
+
+
+async def fetch_hero_schedule(request: web.Request):
+    """
+    Hero API dan dars jadvalini tortib olib DB ga saqlaydi.
+    Foydalanuvchi hero_accounts jadvalidagi birinchi faol token ishlatiladi.
+    """
+    user = request["user"]
+
+    # ── token olish ──
+    accounts = await db.get_active_tokens(user["user_id"])
+    if not accounts:
+        return web.json_response(
+            {"status": "error", "message": "Hero akkaunt topilmadi. Avval akkaunt qo'shing."},
+            status=400,
+        )
+
+    bearer_token = None
+    used_email = None
+    for acc in accounts:
+        t = acc.get("bearer_token") or ""
+        if len(t) > 10:
+            bearer_token = t
+            used_email = acc.get("email", "")
+            break
+
+    if not bearer_token:
+        return web.json_response(
+            {"status": "error", "message": "Faol Bearer token topilmadi. Avval scan qiling."},
+            status=400,
+        )
+
+    # ── Hero API ga so'rov ──
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "Accept": "application/json",
+        "User-Agent": "HeroPremium/2.0",
+    }
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            async with session.get(
+                HERO_SCHEDULE_URL,
+                params=HERO_SCHEDULE_PARAMS,
+                headers=headers,
+                ssl=False,
+            ) as resp:
+                if resp.status == 401:
+                    return web.json_response(
+                        {"status": "error", "message": "Token eskirgan. Qayta scan qiling."},
+                        status=401,
+                    )
+                if resp.status not in (200, 201):
+                    raw_text = await resp.text()
+                    logger.warning(f"Hero schedule HTTP {resp.status}: {raw_text[:300]}")
+                    return web.json_response(
+                        {"status": "error", "message": f"Hero API xatoligi: HTTP {resp.status}"},
+                        status=502,
+                    )
+                data = await resp.json(content_type=None)
+    except asyncio.TimeoutError:
+        return web.json_response({"status": "error", "message": "Hero API javob bermadi (timeout)"}, status=504)
+    except Exception as e:
+        logger.error(f"fetch_hero_schedule network error: {e}", exc_info=True)
+        return web.json_response({"status": "error", "message": f"Tarmoq xatoligi: {e}"}, status=502)
+
+    # ── parse ──
+    items = _extract_hero_items(data)
+    if not items:
+        return web.json_response(
+            {"status": "error", "message": "Hero API dan jadval topilmadi yoki format noto'g'ri"},
+            status=400,
+        )
+
+    slots = []
+    for item in items:
+        normalized = _normalize_hero_slot(item)
+        if normalized:
+            slots.append(normalized)
+
+    if not slots:
+        return web.json_response(
+            {"status": "error", "message": f"Jami {len(items)} ta item keldi, lekin normalize qilib bo'lmadi. Format o'zgacha bo'lishi mumkin."},
+            status=400,
+        )
+
+    # ── DB ga saqlash ──
+    await db.replace_user_schedule_slots(user["user_id"], slots, source="hero_api")
+
+    logger.info(f"[fetch_hero_schedule] user_id={user['user_id']} email={used_email} → {len(slots)} slots saved")
+    return web.json_response({
+        "status":  "success",
+        "message": f"Hero jadvalidan {len(slots)} ta slot import qilindi",
+        "count":   len(slots),
+        "email":   used_email,
+    })
+
+
 async def fetch_google_schedule(request: web.Request):
     user = request["user"]
     profile = await db.get_user_profile(user["user_id"])
@@ -789,6 +1017,7 @@ async def main():
     app.router.add_post("/api/google/verify_token", verify_google_token)
     app.router.add_get("/api/google/oauth/start", start_google_oauth)
     app.router.add_get("/api/google/oauth/callback", google_oauth_callback)
+    app.router.add_post("/api/hero/schedule/fetch",   fetch_hero_schedule)
     app.router.add_post("/api/google/schedule/fetch", fetch_google_schedule)
     app.router.add_get("/api/schedule/preferences", get_schedule_preferences)
     app.router.add_post("/api/schedule/preferences", save_schedule_preferences)
