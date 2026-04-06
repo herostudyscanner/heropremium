@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hero Scanner PRO | Ultra</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* SIZNING OLDINGI STILLARINGIZ (SAQLANIB QOLADI) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
+        :root {
+            --bg-color: #020617; --glass-bg: rgba(15, 23, 42, 0.4);
+            --primary: #6366f1; --danger: #ef4444; --text-main: #f8fafc;
+        }
+        body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        
+        /* YANGI TABS VA PREMIUM DIZAYN */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--glass-bg); padding: 5px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-main); border-radius: 8px; font-weight: 600; transition: 0.3s; cursor: pointer; }
+        .tab-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+        .tab-btn.premium { background: linear-gradient(45deg, #FFD700, #F5A623); color: #000; }
+        
+        .premium-card { background: linear-gradient(145deg, rgba(255,215,0,0.1), rgba(0,0,0,0.8)); border: 1px solid #FFD700; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(255,215,0,0.1); }
+        .ghost-btn { background: linear-gradient(90deg, #ff007a, #7a00ff); border: none; color: white; padding: 15px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: 800; margin-top: 15px; box-shadow: 0 0 20px rgba(255, 0, 122, 0.5); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-scan" onclick="switchTab('scan')">📱 Skaner</button>
+        <button class="tab-btn premium" id="btn-prem" onclick="switchTab('premium')">💎 Premium</button>
+    </div>
+
+    <div id="scan-tab">
+        <h2>Hero Skaner</h2>
+        <p>QR kodlarni shu yerdan skaner qiling.</p>
+        </div>
+
+    <div id="premium-tab" style="display: none;">
+        <div class="premium-card">
+            <h1 style="color: #FFD700; margin-top: 0;">Arvoh Davomat 👻</h1>
+            <p style="color: #aaa; font-size: 14px;">Darsda yo'qmisiz? Bot siz uchun darsdagi kursdoshlarni topadi va yashirincha davomat qildiradi.</p>
+            
+            <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; text-align: left; margin: 15px 0; border: 1px dashed #FFD700;">
+                <p>📍 <strong>Hozirgi Dars:</strong> <span style="color: #10b981;">Tahlil qilinmoqda...</span></p>
+                <p>👥 <strong>Sizga yordam bera oladiganlar:</strong> 4 ta aktiv</p>
+            </div>
+
+            <button class="ghost-btn" onclick="ghostScan()">YORDAM SO'RASH (GHOST SCAN)</button>
+            <p style="font-size: 12px; color: #666; margin-top: 15px;">*Faqat Premium foydalanuvchilar uchun.</p>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function switchTab(tab) {
+            document.getElementById('scan-tab').style.display = tab === 'scan' ? 'block' : 'none';
+            document.getElementById('premium-tab').style.display = tab === 'premium' ? 'block' : 'none';
+            document.getElementById('btn-scan').classList.toggle('active', tab === 'scan');
+        }
+
+        async function ghostScan() {
+            // E'tibor bering: localStoragedan userni loginini olib serverga jo'natamiz
+            const login = localStorage.getItem("hero_login"); 
+            
+            tg.showConfirm("Siz rostdan ham darsda emassiz va yordam so'ramoqchimisiz?", async (ok) => {
+                if(ok) {
+                    tg.showAlert("👻 So'rov yuborilmoqda...");
+                    try {
+                        const r = await fetch('/api/ghost_scan', { 
+                            method: 'POST', 
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ login: login }) 
+                        });
+                        const res = await r.json();
+                        if(res.status === 'success') {
+                            tg.showAlert("✅ " + res.message);
+                        } else {
+                            tg.showAlert("❌ " + res.message + "\n\nBotdan /premium komandasini yuboring.");
+                        }
+                    } catch(e) { tg.showAlert("Xatolik yuz berdi"); }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
