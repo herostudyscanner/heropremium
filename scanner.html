@@ -6,7 +6,6 @@
     <title>Hero Scanner PRO | Ultra</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* SIZNING OLDINGI STILLARINGIZ (SAQLANIB QOLADI) */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
         :root {
             --bg-color: #020617; --glass-bg: rgba(15, 23, 42, 0.4);
@@ -14,41 +13,32 @@
         }
         body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
         
-        /* YANGI TABS VA PREMIUM DIZAYN */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--glass-bg); padding: 5px; border-radius: 12px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-main); border-radius: 8px; font-weight: 600; transition: 0.3s; cursor: pointer; }
-        .tab-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
-        .tab-btn.premium { background: linear-gradient(45deg, #FFD700, #F5A623); color: #000; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; }
         
-        .premium-card { background: linear-gradient(145deg, rgba(255,215,0,0.1), rgba(0,0,0,0.8)); border: 1px solid #FFD700; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(255,215,0,0.1); }
-        .ghost-btn { background: linear-gradient(90deg, #ff007a, #7a00ff); border: none; color: white; padding: 15px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: 800; margin-top: 15px; box-shadow: 0 0 20px rgba(255, 0, 122, 0.5); cursor: pointer; }
+        .panel { display: none; background: var(--glass-bg); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .panel.active { display: block; }
+        
+        .btn-ghost { width: 100%; padding: 15px; background: linear-gradient(45deg, #ef4444, #991b1b); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        .btn-ghost:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
-
     <div class="tabs">
-        <button class="tab-btn active" id="btn-scan" onclick="switchTab('scan')">📱 Skaner</button>
-        <button class="tab-btn premium" id="btn-prem" onclick="switchTab('premium')">💎 Premium</button>
+        <button class="tab-btn active" id="btn-scan" onclick="switchTab('scan')">Skaner</button>
+        <button class="tab-btn" id="btn-premium" onclick="switchTab('premium')">Arvoh Davomat</button>
     </div>
 
-    <div id="scan-tab">
-        <h2>Hero Skaner</h2>
-        <p>QR kodlarni shu yerdan skaner qiling.</p>
-        </div>
+    <div id="scan-tab" class="panel active">
+        <h2>QR Skaner</h2>
+        <p>Tez orada bu yerga kameradan o'qish imkoniyati qo'shiladi...</p>
+    </div>
 
-    <div id="premium-tab" style="display: none;">
-        <div class="premium-card">
-            <h1 style="color: #FFD700; margin-top: 0;">Arvoh Davomat 👻</h1>
-            <p style="color: #aaa; font-size: 14px;">Darsda yo'qmisiz? Bot siz uchun darsdagi kursdoshlarni topadi va yashirincha davomat qildiradi.</p>
-            
-            <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; text-align: left; margin: 15px 0; border: 1px dashed #FFD700;">
-                <p>📍 <strong>Hozirgi Dars:</strong> <span style="color: #10b981;">Tahlil qilinmoqda...</span></p>
-                <p>👥 <strong>Sizga yordam bera oladiganlar:</strong> 4 ta aktiv</p>
-            </div>
-
-            <button class="ghost-btn" onclick="ghostScan()">YORDAM SO'RASH (GHOST SCAN)</button>
-            <p style="font-size: 12px; color: #666; margin-top: 15px;">*Faqat Premium foydalanuvchilar uchun.</p>
-        </div>
+    <div id="premium-tab" class="panel">
+        <h2>👻 Arvoh Davomat</h2>
+        <p>Agar siz darsda bo'lmasangiz, bu tugma orqali darsdagi talabalardan QR kodni tasdiqlab yuborishni so'rashingiz mumkin.</p>
+        <button class="btn-ghost" onclick="ghostScan()">YORDAM SO'RASH</button>
     </div>
 
     <script>
@@ -59,12 +49,19 @@
             document.getElementById('scan-tab').style.display = tab === 'scan' ? 'block' : 'none';
             document.getElementById('premium-tab').style.display = tab === 'premium' ? 'block' : 'none';
             document.getElementById('btn-scan').classList.toggle('active', tab === 'scan');
+            document.getElementById('btn-premium').classList.toggle('active', tab === 'premium');
         }
 
         async function ghostScan() {
-            // E'tibor bering: localStoragedan userni loginini olib serverga jo'natamiz
-            const login = localStorage.getItem("hero_login"); 
+            // Eng muhim o'zgarish: Telegram ID ni to'g'ridan-to'g'ri olish
+            const tgUser = tg.initDataUnsafe?.user;
+            const tgId = tgUser ? tgUser.id : null;
             
+            if(!tgId) {
+                tg.showAlert("Telegram ma'lumotlari topilmadi. Iltimos panelni bot ichidan oching.");
+                return;
+            }
+
             tg.showConfirm("Siz rostdan ham darsda emassiz va yordam so'ramoqchimisiz?", async (ok) => {
                 if(ok) {
                     tg.showAlert("👻 So'rov yuborilmoqda...");
@@ -72,15 +69,16 @@
                         const r = await fetch('/api/ghost_scan', { 
                             method: 'POST', 
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ login: login }) 
+                            body: JSON.stringify({ telegram_id: tgId }) 
                         });
                         const res = await r.json();
                         if(res.status === 'success') {
                             tg.showAlert("✅ " + res.message);
                         } else {
+                            // Agar Premium bo'lmasa, ogohlantirish chiqariladi
                             tg.showAlert("❌ " + res.message + "\n\nBotdan /premium komandasini yuboring.");
                         }
-                    } catch(e) { tg.showAlert("Xatolik yuz berdi"); }
+                    } catch(e) { tg.showAlert("Xatolik: Serverga ulanib bo'lmadi!"); }
                 }
             });
         }
