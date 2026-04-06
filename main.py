@@ -78,6 +78,17 @@ def is_rate_limited(key: str, max_req: int = 5, window_sec: int = 60) -> bool:
 PUBLIC_PATHS = {"/", "/health", "/api/auth/login", "/api/google/oauth/callback"}
 
 @web.middleware
+async def error_middleware(request: web.Request, handler):
+    try:
+        return await handler(request)
+    except Exception as e:
+        logger.error(f"Server xatosi [{request.path}]: {e}", exc_info=True)
+        return web.json_response({
+            "status": "error", 
+            "message": "Ichki server xatoligi yuz berdi. Iltimos, qayta urinib ko'ring."
+        }, status=500)
+
+@web.middleware
 async def auth_middleware(request: web.Request, handler):
     if request.path in PUBLIC_PATHS or request.method == "OPTIONS":
         return await handler(request)
@@ -1003,7 +1014,7 @@ if bot:
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 async def main():
-    app = web.Application(middlewares=[security_headers_middleware, auth_middleware])
+    app = web.Application(middlewares=[error_middleware, security_headers_middleware, auth_middleware])
 
     app.router.add_get("/",                    index)
     app.router.add_get("/health",              health_check)
