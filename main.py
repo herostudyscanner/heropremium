@@ -73,7 +73,7 @@ async def handle_ghost_scan(request):
 
 app = web.Application()
 # Statik fayllar (sizning scanner.html)
-app.router.add_static('/static/', path='static', name='static')
+#app.router.add_static('/static/', path='static', name='static')
 app.router.add_post('/api/ghost_scan', handle_ghost_scan)
 # (Oldingi API yo'lakchalari qoladi: /api/login, /api/scan, etc...)
 
