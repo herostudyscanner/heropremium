@@ -1,2 +1,0 @@
-# heropremium
-for premium user
