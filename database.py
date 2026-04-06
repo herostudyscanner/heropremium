@@ -13,7 +13,7 @@ async def init_db():
     global pool
     try:
         if pool is None:
-            pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
+            pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10, statement_cache_size=0, max_inactive_connection_lifetime=300)
         async with pool.acquire() as conn:
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS app_users (
