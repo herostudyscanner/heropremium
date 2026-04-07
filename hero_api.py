@@ -5,14 +5,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-CONNECT_TIMEOUT = aiohttp.ClientTimeout(total=15, connect=5)
+CONNECT_TIMEOUT = aiohttp.ClientTimeout(total=20, connect=8)
 
 async def scan_task(session: aiohttp.ClientSession, acc: dict, qr_url: str, db_callback):
     email = acc.get('email', '')
     password = acc.get('hero_password', '')
 
     try:
-        # Resolve login URL from QR URL pattern
+        # Resolve login URL
         if '/v1/users/' in qr_url:
             base_url = qr_url.split('/v1/')[0]
             login_url = f"{base_url}/v1/users/login?lang=en"
@@ -23,11 +23,11 @@ async def scan_task(session: aiohttp.ClientSession, acc: dict, qr_url: str, db_c
             logger.warning(f"Unknown URL pattern: {qr_url}")
             return {"email": email, "ok": False, "reason": "unknown_url"}
 
-        # Step 1: Login → get token
+        # Step 1: Login to get token (always use fresh token)
         async with session.post(
             login_url,
             json={"email": email, "password": password},
-            timeout=aiohttp.ClientTimeout(total=10)
+            timeout=aiohttp.ClientTimeout(total=12)
         ) as lp:
             if lp.status != 200:
                 logger.debug(f"Login failed [{email}]: HTTP {lp.status}")
@@ -37,27 +37,21 @@ async def scan_task(session: aiohttp.ClientSession, acc: dict, qr_url: str, db_c
             except Exception:
                 return {"email": email, "ok": False, "reason": "json_parse_error"}
 
-        # Extract token from various response shapes
         token = (
-            data.get("token")
-            or data.get("access_token")
-            or (data.get("data") or {}).get("token")
-            or (data.get("data") or {}).get("access_token")
+            data.get("token") or data.get("access_token") or
+            (data.get("data") or {}).get("token") or
+            (data.get("data") or {}).get("access_token")
         )
         if not token:
             return {"email": email, "ok": False, "reason": "no_token"}
 
-        # Step 2: Hit QR URL with token
+        # Step 2: Call QR endpoint
         headers = {
             "Authorization": f"Bearer {token}",
-            "User-Agent": "HeroScanner/PRO-2.0",
+            "User-Agent": "HeroScanner/PRO-3.0",
             "Accept": "application/json",
         }
-        async with session.get(
-            qr_url,
-            headers=headers,
-            timeout=aiohttp.ClientTimeout(total=12)
-        ) as rp:
+        async with session.get(qr_url, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as rp:
             if rp.status in (200, 201):
                 if db_callback:
                     try:
@@ -76,15 +70,11 @@ async def scan_task(session: aiohttp.ClientSession, acc: dict, qr_url: str, db_c
         logger.error(f"Unexpected error [{email}]: {e}", exc_info=True)
         return {"email": email, "ok": False, "reason": "unexpected"}
 
-
 async def mark_all_accounts_smart(accounts: list, qr_url: str, db_update_func) -> tuple:
-    """
-    Returns: (success_count, total_count, duration_seconds, report_list)
-    """
     if not accounts:
         return 0, 0, 0.0, []
 
-    connector = aiohttp.TCPConnector(limit=20, ssl=False)
+    connector = aiohttp.TCPConnector(limit=25, ssl=False)
     start_time = time.time()
 
     async with aiohttp.ClientSession(connector=connector, timeout=CONNECT_TIMEOUT) as session:
