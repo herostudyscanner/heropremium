@@ -4,7 +4,7 @@ import random
 import string
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 pool = None
@@ -14,7 +14,7 @@ async def init_db():
     global pool
     try:
         if pool is None:
-            pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
+            pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=20, command_timeout=60)
         async with pool.acquire() as conn:
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS app_users (
@@ -29,6 +29,7 @@ async def init_db():
                     google_access_token TEXT NULL,
                     google_token_expire TIMESTAMP NULL,
                     timezone VARCHAR(64) DEFAULT 'Asia/Tashkent',
+                    language VARCHAR(8) DEFAULT 'uz',
                     created_at TIMESTAMP DEFAULT NOW()
                 );
                 CREATE TABLE IF NOT EXISTS hero_accounts (
@@ -81,19 +82,15 @@ async def init_db():
                     raw JSONB,
                     created_at TIMESTAMP DEFAULT NOW()
                 );
+                CREATE INDEX IF NOT EXISTS idx_scan_logs_user_id ON scan_logs(user_id);
+                CREATE INDEX IF NOT EXISTS idx_hero_accounts_user_id ON hero_accounts(user_id);
+                CREATE INDEX IF NOT EXISTS idx_user_schedule_slots_user_id ON user_schedule_slots(user_id);
             """)
-            # Safe column additions
             for stmt in [
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP NULL;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_email VARCHAR(200) NULL;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_refresh_token TEXT NULL;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_access_token TEXT NULL;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_token_expire TIMESTAMP NULL;",
-                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS timezone VARCHAR(64) DEFAULT 'Asia/Tashkent';",
+                "ALTER TABLE app_users ADD COLUMN IF NOT EXISTS language VARCHAR(8) DEFAULT 'uz';",
             ]:
                 await conn.execute(stmt)
-        logger.info("✅ Database initialized successfully.")
+        logger.info("✅ Database initialized with indexes.")
     except Exception as e:
         logger.error(f"❌ Database error: {e}")
 
@@ -120,7 +117,6 @@ async def verify_login(login, password):
         )
 
 async def get_telegram_id(user_id):
-    """BUG FIX: Used for Telegram notifications after scan."""
     async with pool.acquire() as conn:
         return await conn.fetchval("SELECT telegram_id FROM app_users WHERE id=$1", int(user_id))
 
@@ -134,7 +130,6 @@ async def add_hero_account(user_id, email, password, token="NO_TOKEN"):
         """, int(user_id), email, password, token)
 
 async def edit_hero_account(user_id, acc_id, new_email, new_pass):
-    """FROM OLD BOT: Edit existing hero account."""
     async with pool.acquire() as conn:
         res = await conn.execute(
             "UPDATE hero_accounts SET email=$1, hero_password=$2 WHERE id=$3 AND user_id=$4",
@@ -158,7 +153,7 @@ async def get_user_stats(user_id):
             int(user_id)
         )
         user = await conn.fetchrow(
-            "SELECT is_premium, premium_until, google_email, timezone FROM app_users WHERE id=$1",
+            "SELECT is_premium, premium_until, google_email, timezone, language FROM app_users WHERE id=$1",
             int(user_id)
         )
         return {
@@ -168,11 +163,11 @@ async def get_user_stats(user_id):
             "is_premium": bool(user["is_premium"]) if user else False,
             "premium_until": user["premium_until"].isoformat() if user and user["premium_until"] else None,
             "google_email": user["google_email"] if user else None,
-            "timezone": user["timezone"] if user and user["timezone"] else "Asia/Tashkent",
+            "timezone": user["timezone"] if user else "Asia/Tashkent",
+            "language": user["language"] if user else "uz",
         }
 
-async def get_user_scan_history(user_id, limit=20):
-    """BUG FIX: This function was missing — caused crash in get_history endpoint."""
+async def get_user_scan_history(user_id, limit=30):
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """SELECT success_count, total_count, duration, details, scanned_at
@@ -215,7 +210,7 @@ async def get_user_profile(user_id):
         row = await conn.fetchrow(
             """SELECT id, telegram_id, login, is_premium, premium_until,
                       google_email, google_refresh_token, google_access_token,
-                      google_token_expire, timezone
+                      google_token_expire, timezone, language
                FROM app_users WHERE id=$1""",
             int(user_id),
         )
@@ -232,7 +227,6 @@ async def activate_premium(user_id, days: int = 30):
         )
 
 async def deactivate_premium(user_id):
-    """ADMIN: Remove premium from user."""
     async with pool.acquire() as conn:
         await conn.execute(
             "UPDATE app_users SET is_premium=FALSE, premium_until=NULL WHERE id=$1",
@@ -331,10 +325,11 @@ async def find_schedule_overlaps(user_id, limit: int = 200):
         )
         return [dict(r) for r in rows]
 
-# ─── ADMIN FUNCTIONS ──────────────────────────────────────────────────────────
+async def set_user_language(user_id, lang_code):
+    async with pool.acquire() as conn:
+        await conn.execute("UPDATE app_users SET language=$1 WHERE id=$2", lang_code, int(user_id))
 
 def _parse_row(row):
-    """Convert asyncpg Row to JSON-serializable dict."""
     if not row:
         return {}
     d = dict(row)
@@ -344,7 +339,6 @@ def _parse_row(row):
     return d
 
 async def get_super_admin_data():
-    """ENHANCED: Returns full admin data including user premium status."""
     async with pool.acquire() as conn:
         total_users = await conn.fetchval("SELECT COUNT(*) FROM app_users") or 0
         total_heroes = await conn.fetchval("SELECT COUNT(*) FROM hero_accounts") or 0
