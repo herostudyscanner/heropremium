@@ -42,7 +42,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI  = os.getenv("GOOGLE_REDIRECT_URI", "")
 GOOGLE_SCOPES = "openid email profile https://www.googleapis.com/auth/calendar.readonly"
 
-HERO_LOGIN_URL = "https://api.newuzbekistan.hero.study/v1/users/login?lang=en"
+HERO_LOGIN_URL = "https://api.newuzbekistan.hero.study/v1/users/login?lang=en"  # fallback ref
 
 bot = Bot(token=BOT_TOKEN) if BOT_TOKEN else None
 dp  = Dispatcher()
@@ -193,28 +193,11 @@ async def refresh_google_access_token(profile: dict):
     except Exception as e:
         return None, str(e)
 
-# ─── CORRECTED HERO VERIFICATION ──────────────────────────────────────────────
+# ─── HERO VERIFICATION (hero_api orqali) ──────────────────────────────────────
+# NOTE: Hero Study API "pass" kalitini talab qiladi, "password" EMAS.
+#       Barcha login logikasi hero_api.verify_credentials() da to'plangan.
 async def verify_hero_account(email: str, password: str):
-    try:
-        async with aiohttp.ClientSession() as session:
-            # CRITICAL FIX: "password" not "pass"
-            payload = {"email": email, "password": password, "remember": "", "clientToken": ""}
-            async with session.post(
-                HERO_LOGIN_URL, json=payload, ssl=False,
-                timeout=aiohttp.ClientTimeout(total=15)
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json(content_type=None)
-                    token = (
-                        data.get("token") or data.get("access_token") or
-                        (data.get("data") or {}).get("token") or
-                        (data.get("data") or {}).get("access_token")
-                    )
-                    if token:
-                        return True, token
-                return False, f"Hero tizimi status: {resp.status}"
-    except Exception as e:
-        return False, "Hero serveriga ulanib bo'lmadi"
+    return await api.verify_credentials(email, password)
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 PUBLIC_PATHS = {"/", "/health", "/api/auth/login", "/api/google/oauth/callback"}
@@ -414,16 +397,28 @@ async def do_scan(request: web.Request):
     )
     await db.save_detailed_scan(user_id, success, total, duration, report)
 
-    # Telegram notification
-    if bot and success > 0:
+    # ── Telegram bildirishnoma ────────────────────────────────────────────────
+    if bot:
         try:
             tg_id = await db.get_telegram_id(user_id)
             if tg_id:
+                failed    = total - success
+                fail_part = f"\n⚠️ Muvaffaqiyatsiz: {failed}" if failed else ""
+                reasons   = {}
+                for r in report:
+                    if not r.get("ok"):
+                        k = r.get("reason", "unknown")
+                        reasons[k] = reasons.get(k, 0) + 1
+                reason_str = ""
+                if reasons:
+                    reason_str = "\n📋 " + ", ".join(f"{k}×{v}" for k, v in reasons.items())
+                emoji = "✅" if success == total else ("⚠️" if success > 0 else "❌")
                 await bot.send_message(
                     tg_id,
-                    f"✅ *Davomat muvaffaqiyatli!*\n"
-                    f"📊 {success}/{total} akkaunt belgilandi\n"
-                    f"⏱ Vaqt: {duration}s",
+                    f"{emoji} *Davomat natijasi*\n"
+                    f"📊 {success}/{total} muvaffaqiyatli"
+                    f"{fail_part}{reason_str}\n"
+                    f"⏱ {duration}s",
                     parse_mode="Markdown"
                 )
         except Exception as e:
