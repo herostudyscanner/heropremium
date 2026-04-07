@@ -3,1369 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>HERO SCANNER PRO</title>
+<title>HERO SCANNER PRO | ULTRA</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ── VARIABLES ── */
-:root{
-  --bg:#04091a; --bg2:#060d24; --bg3:#0a1535;
-  --card:rgba(10,21,55,0.72);
-  --em:  #6ee7b7; /* emerald – primary */
-  --vi:  #818cf8; /* violet – premium */
-  --am:  #f59e0b; /* amber – gold */
-  --ro:  #f43f5e; /* rose – error */
-  --sky: #38bdf8; /* sky – info */
-  --txt: #e2e8f0; --mute:#64748b; --dim:#334155;
-  --border: rgba(110,231,183,.13);
-  --borderHi: rgba(110,231,183,.38);
-  --glow-em: 0 0 28px rgba(110,231,183,.35);
-  --glow-vi: 0 0 28px rgba(129,140,248,.4);
-  --glow-am: 0 0 20px rgba(245,158,11,.35);
-  --r2: 12px; --r1: 8px;
-  --trans: .25s cubic-bezier(.4,0,.2,1);
+/* ----- GLOBAL ----- */
+:root {
+  --bg: #050b1a;
+  --card: rgba(10, 21, 55, 0.7);
+  --border: rgba(110, 231, 183, 0.15);
+  --em: #6ee7b7;
+  --vi: #818cf8;
+  --am: #f59e0b;
+  --ro: #f43f5e;
+  --sky: #38bdf8;
+  --txt: #e2e8f0;
+  --mute: #64748b;
+  --dim: #334155;
+  --glow: 0 0 20px rgba(110,231,183,0.3);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow-x:hidden}
-
-body{
-  font-family:'DM Mono',monospace;
-  background:var(--bg);
-  color:var(--txt);
-  min-height:100vh;
+[data-theme="light"] {
+  --bg: #f1f5f9;
+  --card: rgba(255,255,255,0.85);
+  --border: rgba(0,0,0,0.1);
+  --txt: #0f172a;
+  --mute: #475569;
+  --dim: #cbd5e1;
 }
-
-/* ── ANIMATED BACKGROUND ── */
-#bgCanvas{
-  position:fixed;inset:0;z-index:0;
-  pointer-events:none;opacity:.55;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: background 0.2s, color 0.2s;
 }
-.aurora{
-  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  padding-bottom: 90px;
+  min-height: 100vh;
 }
-.aura{
-  position:absolute;border-radius:50%;
-  filter:blur(80px);mix-blend-mode:screen;
-  animation:auraFloat var(--dur,20s) var(--del,0s) ease-in-out infinite alternate;
+/* animated bg */
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 20% 30%, rgba(110,231,183,0.08), transparent 60%),
+              radial-gradient(circle at 80% 70%, rgba(129,140,248,0.08), transparent 70%);
 }
-.aura1{width:480px;height:380px;background:radial-gradient(circle,rgba(110,231,183,.28),transparent 65%);top:-10%;left:-5%;--dur:18s;--del:0s}
-.aura2{width:420px;height:500px;background:radial-gradient(circle,rgba(129,140,248,.22),transparent 65%);top:20%;right:-8%;--dur:22s;--del:-4s}
-.aura3{width:560px;height:400px;background:radial-gradient(circle,rgba(56,189,248,.18),transparent 65%);bottom:-5%;left:25%;--dur:26s;--del:-9s}
-.aura4{width:300px;height:300px;background:radial-gradient(circle,rgba(245,158,11,.14),transparent 65%);top:55%;left:5%;--dur:19s;--del:-14s}
-@keyframes auraFloat{
-  0%{transform:translate(0,0) rotate(0deg) scale(1)}
-  33%{transform:translate(40px,-30px) rotate(15deg) scale(1.07)}
-  66%{transform:translate(-25px,35px) rotate(-10deg) scale(.95)}
-  100%{transform:translate(15px,-15px) rotate(5deg) scale(1.03)}
+/* glass card */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 20px;
+  margin-bottom: 16px;
 }
-/* Grid overlay */
-.bgGrid{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(110,231,183,.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(110,231,183,.03) 1px,transparent 1px);
-  background-size:52px 52px;
+.btn {
+  padding: 12px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  background: rgba(110,231,183,0.1);
+  color: var(--em);
+  text-align: center;
 }
-#app{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:16px 14px 110px}
-
-/* ── NOTIFICATION ── */
-#notif{
-  position:fixed;top:-90px;left:50%;transform:translateX(-50%);
-  width:min(calc(100% - 28px),460px);
-  background:rgba(10,21,55,.95);border:1px solid var(--border);
-  border-left:3px solid var(--em);
-  padding:13px 16px;border-radius:var(--r1);
-  transition:top .42s cubic-bezier(.34,1.56,.64,1);
-  z-index:9999;display:flex;align-items:center;gap:10px;
-  font-family:'Space Mono',monospace;font-size:11.5px;
-  box-shadow:var(--glow-em);letter-spacing:.5px;
-  backdrop-filter:blur(16px);
+.btn-primary {
+  background: linear-gradient(135deg, #6ee7b7, #3b82f6);
+  color: #0f172a;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(110,231,183,0.3);
 }
-#notif.show{top:14px}
-#notif.err{border-left-color:var(--ro);box-shadow:0 0 20px rgba(244,63,94,.3)}
-#notif.warn{border-left-color:var(--am);box-shadow:0 0 20px rgba(245,158,11,.3)}
-
-/* ── SCREENS ── */
-.screen{display:none;min-height:100vh}
-.screen.on{display:block;animation:fadeIn .35s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── GLASS CARD ── */
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--r2);
-  padding:18px;margin-bottom:12px;
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  box-shadow:0 8px 32px rgba(0,0,0,.4);
-  position:relative;
+.btn-primary:active { transform: scale(0.97); }
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--txt);
+  font-family: monospace;
+  margin: 8px 0;
 }
-.card::before{
-  content:'';position:absolute;inset:0;border-radius:var(--r2);
-  background:linear-gradient(135deg,rgba(110,231,183,.04),transparent 50%,rgba(129,140,248,.03));
-  pointer-events:none;
+/* screens */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* tabs */
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  background: var(--card);
+  border-radius: 40px;
+  padding: 6px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
 }
-
-/* ── LOGIN ── */
-#loginScreen{
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;padding:20px;
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 32px;
+  background: transparent;
+  color: var(--mute);
+  cursor: pointer;
+  font-weight: 600;
 }
-.loginWrap{width:100%;max-width:400px}
-.logoArea{text-align:center;margin-bottom:40px}
-.logoRing{
-  width:88px;height:88px;margin:0 auto 18px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:50%;
-  background:conic-gradient(from 0deg,rgba(110,231,183,.6),rgba(129,140,248,.6),rgba(110,231,183,.6));
-  animation:logoSpin 6s linear infinite;
-  padding:2px;
+.tab.active {
+  background: rgba(110,231,183,0.2);
+  color: var(--em);
 }
-.logoInner{
-  width:100%;height:100%;border-radius:50%;
-  background:var(--bg2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:32px;
+/* account list */
+.acc-item {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid var(--em);
 }
-@keyframes logoSpin{to{transform:rotate(360deg)}}
-.logoName{
-  font-family:'Orbitron',monospace;font-size:24px;font-weight:900;
-  letter-spacing:6px;
-  background:linear-gradient(135deg,#6ee7b7,#818cf8);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
+.acc-email { font-weight: 600; font-size: 14px; }
+.acc-status { font-size: 12px; color: var(--mute); }
+.badge {
+  padding: 4px 12px;
+  border-radius: 40px;
+  font-size: 12px;
 }
-.logoVer{
-  font-family:'Space Mono',monospace;font-size:9.5px;
-  color:var(--mute);letter-spacing:4px;margin-top:6px;
+.premium-badge { background: rgba(245,158,11,0.2); color: var(--am); }
+.free-badge { background: rgba(100,116,139,0.2); color: var(--mute); }
+.scan-fixed {
+  position: fixed;
+  bottom: 20px;
+  left: 16px;
+  right: 16px;
+  z-index: 100;
 }
-
-/* inputs */
-.flabel{
-  font-family:'Space Mono',monospace;font-size:9.5px;
-  color:var(--mute);letter-spacing:2px;text-transform:uppercase;
-  margin-bottom:5px;display:block;
+.scan-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  padding: 18px;
+  border-radius: 60px;
+  font-weight: 800;
+  font-size: 18px;
+  color: white;
+  width: 100%;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(16,185,129,0.4);
 }
-.finp{
-  width:100%;padding:13px 14px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);border-radius:var(--r1);
-  color:var(--txt);
-  font-family:'DM Mono',monospace;font-size:13px;
-  outline:none;transition:all var(--trans);
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
-.finp:focus{
-  border-color:rgba(110,231,183,.5);
-  background:rgba(110,231,183,.04);
-  box-shadow:0 0 0 3px rgba(110,231,183,.08);
+.modal.active { display: flex; }
+.modal-content {
+  background: var(--card);
+  border-radius: 32px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
 }
-.finp::placeholder{color:rgba(100,116,139,.5)}
-.fgroup{margin-bottom:12px}
-textarea.finp{min-height:88px;resize:vertical;line-height:1.6}
-
-/* buttons */
-.btnP{
-  width:100%;padding:14px;
-  background:linear-gradient(135deg,rgba(110,231,183,.18),rgba(129,140,248,.14));
-  border:1px solid rgba(110,231,183,.35);
-  color:var(--txt);font-family:'Orbitron',monospace;
-  font-size:11px;font-weight:700;letter-spacing:3px;
-  text-transform:uppercase;border-radius:var(--r1);cursor:pointer;
-  position:relative;overflow:hidden;transition:all var(--trans);margin-top:6px;
+/* admin tables */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
 }
-.btnP::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(110,231,183,.12),transparent);
-  opacity:0;transition:opacity var(--trans);
-}
-.btnP:hover::after{opacity:1}
-.btnP:hover{transform:translateY(-1px);box-shadow:var(--glow-em)}
-.btnP:active{transform:scale(.98)}
-.btnP.ld,.btnP:disabled{opacity:.55;pointer-events:none}
-
-.btnS{
-  padding:8px 13px;background:rgba(255,255,255,.04);
-  border:1px solid var(--dim);color:var(--mute);
-  font-family:'Space Mono',monospace;font-size:10.5px;
-  border-radius:var(--r1);cursor:pointer;transition:all var(--trans);white-space:nowrap;
-}
-.btnS:hover{border-color:var(--em);color:var(--em);background:rgba(110,231,183,.04)}
-
-.btnD{
-  padding:7px 11px;background:transparent;
-  border:1px solid rgba(244,63,94,.3);color:var(--ro);
-  font-family:'Space Mono',monospace;font-size:10px;
-  border-radius:var(--r1);cursor:pointer;transition:all var(--trans);white-space:nowrap;
-}
-.btnD:hover{background:rgba(244,63,94,.1);border-color:var(--ro)}
-
-.btnV{
-  padding:7px 13px;background:rgba(129,140,248,.1);
-  border:1px solid rgba(129,140,248,.3);color:var(--vi);
-  font-family:'Space Mono',monospace;font-size:10px;
-  border-radius:var(--r1);cursor:pointer;transition:all var(--trans);white-space:nowrap;
-}
-.btnV:hover{background:rgba(129,140,248,.2);border-color:var(--vi);box-shadow:var(--glow-vi)}
-
-.btnA{
-  padding:7px 13px;background:rgba(245,158,11,.1);
-  border:1px solid rgba(245,158,11,.3);color:var(--am);
-  font-family:'Space Mono',monospace;font-size:10px;
-  border-radius:var(--r1);cursor:pointer;transition:all var(--trans);white-space:nowrap;
-}
-.btnA:hover{background:rgba(245,158,11,.18);box-shadow:var(--glow-am)}
-
-/* ── DASHBOARD HEADER ── */
-.dhead{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:16px;
-}
-.dtitle{
-  font-family:'Orbitron',monospace;font-size:16px;font-weight:900;
-  letter-spacing:3px;
-  background:linear-gradient(135deg,#6ee7b7,#818cf8);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.dsub{font-family:'Space Mono',monospace;font-size:9px;color:var(--mute);margin-top:4px;letter-spacing:1.5px}
-.dactions{display:flex;gap:8px;align-items:center}
-.logoutBtn{
-  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-  background:transparent;border:1px solid rgba(244,63,94,.3);
-  border-radius:var(--r1);color:var(--ro);cursor:pointer;transition:all var(--trans);
-}
-.logoutBtn:hover{background:rgba(244,63,94,.1);border-color:var(--ro)}
-
-/* ── TABS ── */
-.tabs{
-  display:flex;gap:2px;background:var(--card);
-  border:1px solid var(--border);border-radius:var(--r2);
-  padding:5px;margin-bottom:16px;
-  backdrop-filter:blur(14px);overflow-x:auto;
-  scrollbar-width:none;
-}
-.tabs::-webkit-scrollbar{display:none}
-.tab{
-  flex-shrink:0;padding:9px 14px;background:transparent;border:none;
-  color:var(--mute);font-family:'Space Mono',monospace;
-  font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;
-  border-radius:var(--r1);cursor:pointer;transition:all var(--trans);white-space:nowrap;
-}
-.tab.on{
-  background:linear-gradient(135deg,rgba(110,231,183,.18),rgba(129,140,248,.14));
-  color:var(--txt);border:1px solid rgba(110,231,183,.3);
-}
-.tp{display:none}
-.tp.on{display:block;animation:fadeIn .28s ease}
-
-/* ── STATS GRID ── */
-.statsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.sbox{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r1);padding:14px 10px;text-align:center;
-  backdrop-filter:blur(14px);position:relative;overflow:hidden;
-}
-.sbox::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--em),transparent);
-  animation:shimmer 2.8s ease-in-out infinite;
-}
-.sbox.vi::after{background:linear-gradient(90deg,transparent,var(--vi),transparent)}
-.sbox.am::after{background:linear-gradient(90deg,transparent,var(--am),transparent)}
-@keyframes shimmer{0%,100%{opacity:.2}50%{opacity:1}}
-.slabel{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--mute);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.sval{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--em);text-shadow:0 0 16px rgba(110,231,183,.4)}
-.sval.vi{color:var(--vi);text-shadow:0 0 16px rgba(129,140,248,.4)}
-.sval.am{color:var(--am);text-shadow:0 0 16px rgba(245,158,11,.4)}
-
-/* ── PREMIUM STRIP ── */
-.premStrip{
-  margin-bottom:14px;padding:12px 16px;
-  border:1px solid rgba(245,158,11,.2);
-  background:rgba(245,158,11,.05);
-  border-radius:var(--r2);
-  display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
-}
-.premStrip.active{border-color:rgba(110,231,183,.3);background:rgba(110,231,183,.05)}
-.premLabel{font-family:'Space Mono',monospace;font-size:10px;color:var(--am);letter-spacing:1px}
-.premStrip.active .premLabel{color:var(--em)}
-.premSub{font-family:'DM Mono',monospace;font-size:11px;color:var(--mute);margin-top:3px}
-.badge{
-  padding:5px 11px;border-radius:20px;
-  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;font-weight:700;
-  display:flex;align-items:center;gap:5px;white-space:nowrap;
-}
-.badge.free{border:1px solid rgba(245,158,11,.4);color:var(--am);background:rgba(245,158,11,.08)}
-.badge.prem{border:1px solid rgba(110,231,183,.4);color:var(--em);background:rgba(110,231,183,.08)}
-
-/* ── ACCOUNT LIST ── */
-.accList{margin-bottom:10px}
-.accItem{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-  animation:fadeIn .3s ease;transition:all var(--trans);
-}
-.accItem:hover{border-color:rgba(110,231,183,.28);background:rgba(10,21,55,.85)}
-.accItem.active{border-left:3px solid var(--em)}
-.accItem.inactive{border-left:3px solid rgba(244,63,94,.5)}
-.accLeft{flex:1;min-width:0}
-.accEmail{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.accStatus{display:inline-flex;align-items:center;gap:5px;margin-top:4px;font-size:9.5px;letter-spacing:1px}
-.accStatus.on{color:var(--em)}.accStatus.off{color:rgba(244,63,94,.8)}
-.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.dot.pulse{animation:dotPulse 1.6s ease-in-out infinite}
-@keyframes dotPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 currentColor}50%{opacity:.6;box-shadow:0 0 0 5px transparent}}
-.accActions{display:flex;gap:6px;align-items:center}
-
-/* ── GOOGLE BADGE ── */
-.googleBadge{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:8px 14px;border-radius:var(--r2);
-  margin-bottom:12px;font-size:11px;
-}
-.googleBadge.connected{
-  border:1px solid rgba(110,231,183,.35);
-  background:rgba(110,231,183,.06);color:var(--em);
-}
-.googleBadge.disconnected{
-  border:1px solid rgba(245,158,11,.3);
-  background:rgba(245,158,11,.05);color:var(--am);
-}
-.gBadgeEmail{font-size:11.5px;font-family:'DM Mono',monospace;color:var(--txt)}
-
-/* ── SCAN BUTTON ── */
-.scanFixed{position:fixed;bottom:16px;left:14px;right:14px;z-index:300;max-width:860px;margin:0 auto;left:50%;transform:translateX(-50%);width:calc(100% - 28px)}
-.scanBtn{
-  width:100%;height:60px;
-  background:linear-gradient(135deg,rgba(110,231,183,.12),rgba(129,140,248,.1));
-  border:1.5px solid rgba(110,231,183,.45);border-radius:var(--r2);
-  color:var(--txt);font-family:'Orbitron',monospace;font-size:12px;
-  font-weight:900;letter-spacing:4px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  box-shadow:0 8px 32px rgba(110,231,183,.2),inset 0 1px 0 rgba(110,231,183,.08);
-  transition:all var(--trans);position:relative;overflow:hidden;
-  backdrop-filter:blur(16px);
-}
-.scanBtn::before{
-  content:'';position:absolute;top:0;left:0;width:100%;height:2px;
-  background:linear-gradient(90deg,transparent,var(--em),transparent);
-  animation:scanLine 2s linear infinite;
-}
-@keyframes scanLine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-.scanBtn:hover{box-shadow:0 12px 48px rgba(110,231,183,.35);transform:translateY(-1px)}
-.scanBtn:active{transform:scale(.99)}
-.scanBtn.scanning{animation:scanPulse 1s ease-in-out infinite;pointer-events:none}
-@keyframes scanPulse{0%,100%{box-shadow:0 8px 32px rgba(110,231,183,.2)}50%{box-shadow:0 12px 60px rgba(110,231,183,.55)}}
-.spin{width:18px;height:18px;border:2px solid rgba(110,231,183,.3);border-top-color:var(--em);border-radius:50%;animation:spinAnim .6s linear infinite}
-@keyframes spinAnim{to{transform:rotate(360deg)}}
-
-/* ── HISTORY ── */
-.histItem{
-  padding:14px 16px;background:var(--card);
-  border:1px solid var(--border);border-radius:var(--r2);margin-bottom:8px;
-  animation:fadeIn .3s ease;
-}
-.histTime{font-family:'Space Mono',monospace;font-size:10px;color:var(--mute);margin-bottom:8px}
-.histRes{display:flex;align-items:center;gap:12px}
-.histBar{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
-.histBarFill{height:100%;border-radius:2px;transition:width .6s ease}
-
-/* ── MODAL ── */
-.overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(4,9,26,.88);z-index:1000;
-  align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(8px);
-}
-.overlay.on{display:flex;animation:fadeIn .3s ease}
-.mbox{
-  background:rgba(6,13,36,.95);border:1px solid var(--borderHi);
-  border-radius:var(--r2);padding:24px;width:100%;max-width:420px;
-  max-height:85vh;overflow-y:auto;
-  box-shadow:0 0 80px rgba(110,231,183,.18);
-  animation:mSlide .38s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes mSlide{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-.mtitle{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--em);letter-spacing:2px;margin-bottom:18px;text-align:center}
-.rSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.rBox{text-align:center;padding:14px 6px;border:1px solid var(--border);border-radius:var(--r1)}
-.rNum{font-family:'Orbitron',monospace;font-size:28px;font-weight:900}
-.rNum.g{color:var(--em)}.rNum.r{color:var(--ro)}.rNum.b{color:var(--sky)}
-.rLbl{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--mute);letter-spacing:1px;margin-top:4px}
-.rList{max-height:200px;overflow-y:auto}
-.rItem{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);font-family:'DM Mono',monospace;font-size:11.5px}
-.rOk{color:var(--em)}.rFail{color:var(--ro)}
-.rEmail{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)}
-
-/* ── SECTION HEADER ── */
-.secHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.secLbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:3px;text-transform:uppercase}
-
-/* ── EMPTY STATE ── */
-.empty{text-align:center;padding:40px 20px;font-family:'Space Mono',monospace;font-size:11px;color:var(--mute);letter-spacing:.5px}
-
-/* ── PREMIUM TAB ── */
-.premCard{
-  border:1px solid rgba(129,140,248,.25);
-  background:linear-gradient(135deg,rgba(129,140,248,.06),rgba(110,231,183,.04));
-  border-radius:var(--r2);padding:18px;margin-bottom:12px;
-}
-.premCardTitle{font-family:'Orbitron',monospace;font-size:11px;color:var(--vi);letter-spacing:2px;margin-bottom:12px}
-.featureGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.featureItem{
-  display:flex;align-items:center;gap:8px;padding:10px 12px;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
-  border-radius:var(--r1);font-size:10.5px;color:var(--mute);
-}
-.featureItem.ok{color:var(--txt);border-color:rgba(110,231,183,.15)}
-.fIcon{font-size:14px;flex-shrink:0}
-
-.planCard{border:1px solid var(--border);border-radius:var(--r1);padding:12px;background:rgba(0,0,0,.2);margin-top:10px}
-.planItem{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.06);font-size:11px}
-.planItem:last-child{border-bottom:none}
-
-/* ── ADMIN ── */
-.adminStats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.aStat{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r1);padding:14px;text-align:center;
-  backdrop-filter:blur(14px);
-}
-.aStatNum{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--em)}
-.aStatNum.vi{color:var(--vi)}.aStatNum.am{color:var(--am)}.aStatNum.sky{color:var(--sky)}
-.aStatLabel{font-size:9px;color:var(--mute);letter-spacing:2px;margin-top:4px;text-transform:uppercase}
-
-.tblWrap{overflow-x:auto;border-radius:var(--r2)}
-.atbl{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:11px;min-width:500px}
-.atbl th{
-  background:rgba(110,231,183,.05);color:var(--mute);
-  padding:10px 12px;text-align:left;font-family:'Space Mono',monospace;
-  font-size:8.5px;letter-spacing:2px;text-transform:uppercase;
-  border-bottom:1px solid var(--border);
-}
-.atbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--txt);word-break:break-all;vertical-align:middle}
-.atbl tr:hover td{background:rgba(110,231,183,.02)}
-.premToggle{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:4px 10px;border-radius:20px;font-size:9px;font-family:'Space Mono',monospace;
-  cursor:pointer;border:1px solid;transition:all var(--trans);
-}
-.premToggle.on{border-color:rgba(110,231,183,.4);color:var(--em);background:rgba(110,231,183,.08)}
-.premToggle.off{border-color:rgba(245,158,11,.35);color:var(--am);background:rgba(245,158,11,.06)}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
-::-webkit-scrollbar-thumb:hover{background:var(--em)}
-
-/* ── ADMIN SCREEN ── */
-#adminScreen{padding-bottom:30px}
-
-@media(max-width:640px){
-  .statsGrid{grid-template-columns:repeat(2,1fr)}
-  .featureGrid{grid-template-columns:1fr}
-  .adminStats{grid-template-columns:repeat(2,1fr)}
-  .scanFixed{width:calc(100% - 28px)}
-  #app{padding:14px 12px 100px}
+.admin-table th, .admin-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
 }
 </style>
 </head>
 <body>
-<!-- Animated BG -->
-<canvas id="bgCanvas"></canvas>
-<div class="aurora">
-  <div class="aura aura1"></div>
-  <div class="aura aura2"></div>
-  <div class="aura aura3"></div>
-  <div class="aura aura4"></div>
-</div>
-<div class="bgGrid"></div>
+<div class="bg-glow"></div>
 
-<div id="app">
-<!-- Notification -->
-<div id="notif">
-  <span id="notifIcon">✦</span>
-  <span id="notifTxt" style="flex:1"></span>
-</div>
-
-<!-- ══════════════ LOGIN ══════════════ -->
-<div id="loginScreen" class="screen">
-  <div class="loginWrap">
-    <div class="logoArea">
-      <div class="logoRing"><div class="logoInner">⬡</div></div>
-      <div class="logoName">HERO</div>
-      <div class="logoVer">SCANNER // PRO v2.0</div>
-    </div>
-    <div class="card">
-      <div class="fgroup">
-        <label class="flabel">// Foydalanuvchi nomi</label>
-        <input id="loginInp" class="finp" type="text" placeholder="hero_XXXXXXXXX" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false">
-      </div>
-      <div class="fgroup">
-        <label class="flabel">// Kirish kodi</label>
-        <input id="passInp" class="finp" type="password" placeholder="••••••••••" autocomplete="current-password">
-      </div>
-      <button class="btnP" id="loginBtn" onclick="doLogin()">TIZIMGA KIRISH</button>
-    </div>
-    <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9.5px;color:var(--mute);letter-spacing:.5px;line-height:2;margin-top:16px">
-      Telegram botdan <span style="color:var(--em)">/login</span> orqali ma'lumot oling
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="screen active">
+  <div style="max-width: 400px; margin: 20vh auto; padding: 20px;">
+    <div class="card" style="text-align: center;">
+      <h1 style="font-size: 32px;">⚡ HERO</h1>
+      <p style="color:var(--em);">SCANNER PRO</p>
+      <input type="text" id="loginInput" class="input" placeholder="Login" autocomplete="off">
+      <input type="password" id="passwordInput" class="input" placeholder="Parol">
+      <button class="btn btn-primary" style="width:100%; margin-top: 12px;" onclick="doLogin()">KIRISH</button>
+      <p style="font-size:12px; margin-top: 16px;">Telegram botdan /login orqali ma'lumot oling</p>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ DASHBOARD ══════════════ -->
-<div id="dashScreen" class="screen">
-  <div class="dhead">
-    <div>
-      <div class="dtitle">HERO SCAN</div>
-      <div class="dsub" id="userLabel">// FOYDALANUVCHI</div>
-    </div>
-    <div class="dactions">
-      <button id="adminTabBtn" class="btnA" onclick="goAdmin()" style="display:none">⚡ ADMIN</button>
-      <button class="logoutBtn" onclick="doLogout()" title="Chiqish">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab on" onclick="switchTab(this,'tpMain')">◈ BOSH</button>
-    <button class="tab" onclick="switchTab(this,'tpAdd')">＋ QO'SHISH</button>
-    <button class="tab" onclick="switchTab(this,'tpHistory')">◷ TARIX</button>
-    <button class="tab" onclick="switchTab(this,'tpPremium')">★ PREMIUM</button>
-  </div>
-
-  <!-- TAB: MAIN -->
-  <div id="tpMain" class="tp on">
-    <div class="premStrip" id="premStrip">
-      <div>
-        <div class="premLabel">PREMIUM HOLATI</div>
-        <div class="premSub" id="premHint">Faol emas</div>
-      </div>
-      <div class="badge free" id="premBadge"><span class="dot" style="background:var(--am)"></span>FREE</div>
-    </div>
-
-    <div class="statsGrid">
-      <div class="sbox"><div class="slabel">AKKAUNT</div><div class="sval" id="stTotal">—</div></div>
-      <div class="sbox vi"><div class="slabel">MUVAFFAQ</div><div class="sval vi" id="stSucc">—</div></div>
-      <div class="sbox am"><div class="slabel">OXIRGI</div><div class="sval am" id="stLast">—</div></div>
-    </div>
-
-    <div class="secHead">
-      <div class="secLbl">// Akkauntlar</div>
-      <button class="btnS" onclick="loadData()" style="font-size:9px;padding:5px 10px">↻ YANGILASH</button>
-    </div>
-    <div class="accList" id="accList"><div class="empty">Yuklanmoqda...</div></div>
-  </div>
-
-  <!-- TAB: ADD -->
-  <div id="tpAdd" class="tp">
-    <div class="card">
-      <div class="secLbl" style="margin-bottom:14px">// YANGI AKKAUNT QO'SHISH</div>
-      <div class="fgroup">
-        <label class="flabel">Hero Email</label>
-        <input id="newEmail" class="finp" type="email" placeholder="ism@newuu.uz" autocomplete="off">
-      </div>
-      <div class="fgroup">
-        <label class="flabel">Hero Paroli</label>
-        <input id="newPass" class="finp" type="password" placeholder="••••••••">
-      </div>
-      <button class="btnP" id="addBtn" onclick="addAcc()">RO'YXATGA QO'SHISH</button>
-      <div id="addMsg" style="margin-top:10px;font-size:10.5px;color:var(--mute);line-height:1.6"></div>
-    </div>
-    <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:var(--mute);line-height:2;text-align:center;margin-top:8px">
-      Email va parol kiritilganda <span style="color:var(--em)">hero.study</span> tizimida<br>avtomatik tekshiriladi va token olinadi
-    </div>
-  </div>
-
-  <!-- TAB: HISTORY -->
-  <div id="tpHistory" class="tp">
-    <div id="histList"><div class="empty">Yuklanmoqda...</div></div>
-  </div>
-
-  <!-- TAB: PREMIUM -->
-  <div id="tpPremium" class="tp">
-    <!-- Status card -->
-    <div class="premCard" id="premStatusCard">
-      <div class="premCardTitle">★ PREMIUM A'ZOLIK</div>
-      <div class="featureGrid">
-        <div class="featureItem" id="fGoogle"><span class="fIcon">🔗</span>Google Calendar</div>
-        <div class="featureItem" id="fSchedule"><span class="fIcon">📅</span>Jadval Planner</div>
-        <div class="featureItem" id="fOverlap"><span class="fIcon">🔍</span>Overlap Tahlil</div>
-        <div class="featureItem" id="fPriority"><span class="fIcon">⚡</span>Ustuvor Skan</div>
-      </div>
-      <div style="font-size:11px;color:var(--mute);line-height:1.7" id="premExpiry">Yuklanmoqda...</div>
-    </div>
-
-    <!-- Activation -->
-    <div class="card">
-      <div class="secLbl" style="margin-bottom:14px">// PREMIUM AKTIVATSIYA</div>
-      <div class="fgroup">
-        <label class="flabel">Maxsus Kod</label>
-        <input id="premiumCode" class="finp" type="text" placeholder="HERO-XXXX-XXXX" autocomplete="off">
-      </div>
-      <button class="btnP" id="premiumBtn" onclick="activatePremium()">PREMIUMNI YOQISH</button>
-    </div>
-
-    <!-- Google -->
-    <div class="card">
-      <div class="secLbl" style="margin-bottom:12px">// GOOGLE CALENDAR</div>
-      <!-- Google status badge -->
-      <div id="googleStatusBadge" class="googleBadge disconnected">
-        <span>⚠</span><span>Google ulanmagan</span>
-      </div>
-      <div class="fgroup">
-        <label class="flabel">Google Access Token (manual)</label>
-        <input id="googleToken" class="finp" type="text" placeholder="ya29.a0...">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btnV" id="connectGoogleBtn" onclick="connectGoogleOAuth()">🔗 OAUTH ULASH</button>
-        <button class="btnS" id="verifyGoogleBtn" onclick="verifyGoogleToken()">✓ TOKEN TEKSHIR</button>
-        <button class="btnS" id="disconnectGoogleBtn" onclick="disconnectGoogle()" style="display:none">✕ UZISH</button>
-      </div>
-      <div style="margin-top:10px">
-        <button class="btnP" id="fetchScheduleBtn" onclick="fetchGoogleSchedule()" style="margin-top:0">
-          📥 GOOGLE KALENDARDAN IMPORT
-        </button>
+<!-- DASHBOARD -->
+<div id="dashboardScreen" class="screen">
+  <div style="padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2>📱 Panel</h2>
+      <div style="display: flex; gap: 8px;">
+        <select id="langSelect" onchange="setLanguage(this.value)" style="background:var(--card); border:1px solid var(--border); border-radius: 20px; padding: 6px 12px; color:var(--txt);">
+          <option value="uz">🇺🇿 O‘zbek</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+        <button class="btn" style="padding: 6px 12px;" onclick="toggleTheme()">🌓</button>
+        <button id="adminBtn" class="btn" style="display:none; background:rgba(245,158,11,0.2);" onclick="showAdmin()">ADMIN</button>
+        <button class="btn" style="background:rgba(244,63,94,0.2); color:var(--ro);" onclick="logout()">Chiqish</button>
       </div>
     </div>
 
-    <!-- Schedule prefs -->
-    <div class="card">
-      <div class="secLbl" style="margin-bottom:14px">// JADVAL SOZLAMALARI</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fgroup" style="margin-bottom:0">
-          <label class="flabel">Kurs / Fan</label>
-          <input id="prefCourse" class="finp" type="text" placeholder="Math 101">
-        </div>
-        <div class="fgroup" style="margin-bottom:0">
-          <label class="flabel">Xona</label>
-          <input id="prefRoom" class="finp" type="text" placeholder="A-302">
-        </div>
+    <!-- premium status strip -->
+    <div class="card" id="premiumStrip" style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div><span id="premiumLabel">⭐ FREE</span><br><small id="premiumUntil">—</small></div>
+        <div><button class="btn" onclick="showPremiumModal()">Premium faollashtirish</button></div>
       </div>
-      <div class="fgroup" style="margin-top:10px">
-        <label class="flabel">Kunlar (vergul)</label>
-        <input id="prefDays" class="finp" type="text" placeholder="monday,wednesday,friday">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fgroup" style="margin-bottom:0">
-          <label class="flabel">Vaqt oralig'i</label>
-          <input id="prefTime" class="finp" type="text" placeholder="08:00-18:00">
-        </div>
-        <div class="fgroup" style="margin-bottom:0">
-          <label class="flabel">Timezone</label>
-          <input id="tzName" class="finp" type="text" value="Asia/Tashkent">
-        </div>
-      </div>
-      <div class="fgroup" style="margin-top:10px">
-        <label class="flabel">Izoh</label>
-        <textarea id="prefNotes" class="finp" placeholder="Masalan: 2-qavat xonalar afzal"></textarea>
-      </div>
-      <button class="btnP" id="prefBtn" onclick="savePremiumPrefs()">SOZLAMANI SAQLASH</button>
     </div>
 
-    <!-- Slot planner -->
-    <div class="card">
-      <div class="secLbl" style="margin-bottom:10px">// SLOT PLANNER</div>
-      <div style="font-size:10px;color:var(--mute);line-height:1.7;margin-bottom:10px">
-        JSON massiv kiriting: [{<span style="color:var(--em)">"course","room","day","time","status"</span>}]
+    <!-- stats -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+      <div class="card" style="text-align: center;"><div>📊 Akkauntlar</div><div id="statTotal" style="font-size: 28px; font-weight: 800;">0</div></div>
+      <div class="card" style="text-align: center;"><div>✅ Muvaffaq</div><div id="statSuccess" style="font-size: 28px; font-weight: 800;">0</div></div>
+      <div class="card" style="text-align: center;"><div>🕒 Oxirgi</div><div id="statLast" style="font-size: 20px;">0/0</div></div>
+    </div>
+
+    <!-- tabs -->
+    <div class="tab-bar">
+      <div class="tab active" data-tab="accountsTab">📋 Akkauntlar</div>
+      <div class="tab" data-tab="addTab">➕ Qo‘shish</div>
+      <div class="tab" data-tab="historyTab">📜 Tarix</div>
+      <div class="tab" data-tab="premiumTab">💎 Premium</div>
+    </div>
+
+    <div id="accountsTab" class="tab-pane active">
+      <div id="accountsList"></div>
+    </div>
+    <div id="addTab" class="tab-pane" style="display:none;">
+      <div class="card">
+        <input type="email" id="newEmail" class="input" placeholder="Email (faqat @newuu.uz)">
+        <input type="password" id="newPass" class="input" placeholder="Hero parol">
+        <button class="btn btn-primary" onclick="addAccount()">Qo'shish va tekshirish</button>
+        <div id="addMsg" style="margin-top: 12px; font-size: 12px;"></div>
       </div>
-      <textarea id="scheduleInput" class="finp" placeholder='[{"course":"Math","room":"A-302","day":"monday","time":"10:00-11:00","status":"free"}]'></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <button class="btnP" id="planBtn" onclick="buildPlan()" style="flex:1;margin-top:0">MOS SLOTLAR</button>
-        <button class="btnS" id="uploadBtn" onclick="uploadSchedule()">SAQLASH</button>
-        <button class="btnS" onclick="checkOverlaps()">OVERLAP</button>
+    </div>
+    <div id="historyTab" class="tab-pane" style="display:none;">
+      <div id="historyList" class="card">Yuklanmoqda...</div>
+      <canvas id="historyChart" width="400" height="200" style="margin-top: 20px;"></canvas>
+    </div>
+    <div id="premiumTab" class="tab-pane" style="display:none;">
+      <div class="card">
+        <h3>🔐 Premium kod</h3>
+        <input type="text" id="premiumCode" class="input" placeholder="Kodni kiriting">
+        <button class="btn btn-primary" onclick="activatePremiumCode()">Faollashtirish</button>
       </div>
-      <div id="planOut" class="planCard" style="margin-top:10px"><div style="font-size:10px;color:var(--mute)">Reja yaratilmagan.</div></div>
+      <div class="card">
+        <h3>📅 Google Calendar</h3>
+        <div id="googleStatus">🔴 ulanmagan</div>
+        <button class="btn" onclick="startGoogleOAuth()">🔗 Google bilan ulash</button>
+        <button class="btn" onclick="disconnectGoogle()" style="background:rgba(244,63,94,0.2);">✕ Uzish</button>
+        <hr style="margin: 12px 0;">
+        <button class="btn" onclick="fetchGoogleSchedule()">📥 Kalendardan import</button>
+        <button class="btn" onclick="checkOverlaps()">⚠️ Overlap tahlil</button>
+      </div>
+      <div class="card">
+        <h3>🎯 Afzalliklar</h3>
+        <input id="prefCourse" class="input" placeholder="Kurs nomi">
+        <input id="prefRoom" class="input" placeholder="Xona">
+        <input id="prefDays" class="input" placeholder="Kunlar (monday,wednesday)">
+        <input id="prefTime" class="input" placeholder="Vaqt oralig'i (09:00-17:00)">
+        <textarea id="prefNotes" class="input" rows="2" placeholder="Izoh"></textarea>
+        <button class="btn" onclick="savePreferences()">Saqlash</button>
+      </div>
     </div>
   </div>
 
-  <!-- Scan button -->
-  <div class="scanFixed">
-    <button class="scanBtn" id="scanBtn" onclick="startScan()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>
-        <line x1="2" y1="12" x2="22" y2="12" opacity=".3"/><line x1="12" y1="2" x2="12" y2="22" opacity=".3"/>
-      </svg>
-      DAVOMATGA KIRITISH
-    </button>
+  <div class="scan-fixed">
+    <button class="scan-btn" onclick="startScan()">📷 DAVOMATGA KIRITISH</button>
   </div>
 </div>
 
-<!-- ══════════════ ADMIN SCREEN ══════════════ -->
+<!-- ADMIN PANEL -->
 <div id="adminScreen" class="screen">
-  <div class="dhead">
-    <div>
-      <div class="dtitle" style="background:linear-gradient(135deg,var(--am),var(--ro));-webkit-background-clip:text;background-clip:text;color:transparent">ADMIN PANEL</div>
-      <div class="dsub">// OWNER PANELI</div>
+  <div style="padding: 16px;">
+    <div style="display: flex; justify-content: space-between;">
+      <h2>🛡 Admin Panel</h2>
+      <button class="btn" onclick="backToDashboard()">◀ Orqaga</button>
     </div>
-    <div class="dactions">
-      <button class="btnA" onclick="adminExportCSV()">⬇ CSV</button>
-      <button class="btnS" onclick="loadAdmin()">↻ YANGILASH</button>
-      <button class="btnS" onclick="goBack()">← ORQAGA</button>
+    <div class="card" id="adminStats" style="display: grid; grid-template-columns: repeat(2,1fr); gap: 12px;"></div>
+    <div class="card">
+      <h3>👥 Foydalanuvchilar</h3>
+      <div style="overflow-x: auto;"><table class="admin-table" id="adminUsersTable"><tbody></tbody></table></div>
     </div>
-  </div>
-
-  <div class="adminStats" id="adminStats">
-    <div class="aStat"><div class="aStatNum" id="aTotalUsers">—</div><div class="aStatLabel">JAMI USERS</div></div>
-    <div class="aStat"><div class="aStatNum vi" id="aTotalPrem">—</div><div class="aStatLabel">PREMIUM</div></div>
-    <div class="aStat"><div class="aStatNum am" id="aTotalHero">—</div><div class="aStatLabel">HERO ACCS</div></div>
-    <div class="aStat"><div class="aStatNum sky" id="aTodayScans">—</div><div class="aStatLabel">BUGUNGI SCAN</div></div>
-  </div>
-
-  <!-- Users -->
-  <div class="secHead"><div class="secLbl">// Foydalanuvchilar</div></div>
-  <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
-    <div class="tblWrap">
-      <table class="atbl">
-        <thead><tr>
-          <th>Login</th><th>Telegram</th><th>Hero #</th><th>Premium</th><th>Amal</th>
-        </tr></thead>
-        <tbody id="adminUsers"></tbody>
-      </table>
+    <div class="card">
+      <h3>🔐 Barcha Hero akkauntlar</h3>
+      <div style="overflow-x: auto;"><table class="admin-table" id="adminAccountsTable"><tbody></tbody></table></div>
     </div>
-  </div>
-
-  <!-- Accounts -->
-  <div class="secHead"><div class="secLbl">// Barcha Hero Akkauntlar</div></div>
-  <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
-    <div class="tblWrap">
-      <table class="atbl">
-        <thead><tr><th>Foydalanuvchi</th><th>Email</th><th>Holat</th></tr></thead>
-        <tbody id="adminAccs"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Logs -->
-  <div class="secHead"><div class="secLbl">// Oxirgi Skanlar</div></div>
-  <div class="card" style="padding:0;overflow:hidden">
-    <div class="tblWrap">
-      <table class="atbl">
-        <thead><tr><th>Foydalanuvchi</th><th>Natija</th><th>Davom.</th><th>Vaqt</th></tr></thead>
-        <tbody id="adminLogs"></tbody>
-      </table>
-    </div>
+    <button class="btn" onclick="exportCSV()">📥 CSV eksport</button>
   </div>
 </div>
 
-<!-- ══════════════ SCAN RESULT MODAL ══════════════ -->
-<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
-  <div class="mbox">
-    <div class="mtitle">// SKAN NATIJASI</div>
-    <div class="rSummary" id="rSummary"></div>
-    <div class="secLbl" style="margin-bottom:8px;display:block">BATAFSIL</div>
-    <div class="rList" id="rList"></div>
-    <button class="btnP" onclick="closeModal()" style="margin-top:18px">YOPISH</button>
+<!-- MODAL -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <h3>Skaner natijasi</h3>
+    <div id="modalStats" style="display: flex; gap: 12px; margin: 12px 0;"></div>
+    <div id="modalReport" style="max-height: 300px; overflow-y: auto;"></div>
+    <button class="btn" onclick="closeModal()">Yopish</button>
   </div>
 </div>
-
-</div><!-- #app -->
 
 <script>
-/* ── CANVAS PARTICLE BACKGROUND ── */
-(function(){
-  const cv = document.getElementById('bgCanvas');
-  const ctx = cv.getContext('2d');
-  let W, H, pts = [];
-  
-  function resize(){
-    W = cv.width  = window.innerWidth;
-    H = cv.height = window.innerHeight;
-  }
-  
-  function initPts(){
-    pts = [];
-    const n = Math.min(Math.floor((W * H) / 14000), 70);
-    for(let i=0;i<n;i++){
-      pts.push({
-        x: Math.random()*W, y: Math.random()*H,
-        vx: (Math.random()-.5)*.35,
-        vy: (Math.random()-.5)*.35,
-        r:  Math.random()*1.5+.5,
-        o:  Math.random()*.6+.15,
-      });
-    }
-  }
-  
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    for(let i=0;i<pts.length;i++){
-      const p = pts[i];
-      p.x += p.vx; p.y += p.vy;
-      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
-      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
-      
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = `rgba(110,231,183,${p.o})`;
-      ctx.fill();
-      
-      for(let j=i+1;j<pts.length;j++){
-        const q = pts[j];
-        const dx = p.x-q.x, dy = p.y-q.y;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if(dist < 120){
-          const alpha = (1-dist/120)*.12;
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(110,231,183,${alpha})`;
-          ctx.lineWidth = .6;
-          ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
-          ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  
-  window.addEventListener('resize',()=>{resize();initPts()});
-  resize(); initPts(); draw();
-})();
+// --- STATE ---
+let token = localStorage.getItem('token');
+let userId = localStorage.getItem('userId');
+let role = localStorage.getItem('role');
+let premium = localStorage.getItem('premium') === 'true';
+let chartInstance = null;
 
-/* ── TELEGRAM ── */
-const tg = window.Telegram?.WebApp;
-if(tg){tg.expand();tg.ready()}
+// --- helpers ---
+function api(method, path, body) {
+  return fetch(path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(res => res.json());
+}
 
-/* ── STATE ── */
-let _token=null, _uid=null, _role=null, _premium=false, _googleEmail=null;
+function notify(msg, isError = false) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.position = 'fixed'; el.style.bottom = '80px'; el.style.left = '16px'; el.style.right = '16px';
+  el.style.background = isError ? '#f43f5e' : '#10b981'; el.style.color = 'white';
+  el.style.padding = '12px'; el.style.borderRadius = '40px'; el.style.zIndex = '9999';
+  el.style.textAlign = 'center'; el.style.fontWeight = 'bold';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
 
-/* ── INIT ── */
-function init(){
-  _token   = sessionStorage.getItem('hs_t');
-  _uid     = sessionStorage.getItem('hs_u');
-  _role    = sessionStorage.getItem('hs_r');
-  _premium = sessionStorage.getItem('hs_p')==='1';
-  _googleEmail = sessionStorage.getItem('hs_g') || null;
-  
-  if(_token && _uid){
-    show('dashScreen');
-    document.getElementById('userLabel').textContent = '// '+(sessionStorage.getItem('hs_l')||'');
-    if(_role==='super_admin') document.getElementById('adminTabBtn').style.display='inline-flex';
-    loadData();
-    loadPremiumStatus();
+// --- auth ---
+async function doLogin() {
+  const login = document.getElementById('loginInput').value.trim();
+  const pass = document.getElementById('passwordInput').value.trim();
+  if (!login || !pass) return notify('Login va parolni kiriting', true);
+  const data = await api('POST', '/api/auth/login', { login, password: pass });
+  if (data.status === 'success') {
+    token = data.token; userId = data.user_id; role = data.role; premium = data.premium;
+    localStorage.setItem('token', token); localStorage.setItem('userId', userId); localStorage.setItem('role', role); localStorage.setItem('premium', premium);
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('dashboardScreen').classList.add('active');
+    if (role === 'super_admin') document.getElementById('adminBtn').style.display = 'inline-block';
+    loadDashboard();
   } else {
-    show('loginScreen');
+    notify(data.message || 'Xatolik', true);
   }
 }
-
-/* ── SCREENS ── */
-function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
+function logout() {
+  localStorage.clear(); location.reload();
 }
-function switchTab(btn, id){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
-  document.querySelectorAll('.tp').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById(id).classList.add('on');
-  if(id==='tpHistory') loadHistory();
-  if(id==='tpPremium'){ loadPremiumStatus(); loadPremiumPrefs(); }
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
 }
-function goAdmin(){show('adminScreen');loadAdmin()}
-function goBack(){show('dashScreen')}
-
-/* ── NOTIFY ── */
-let _nt;
-function notify(msg, type='ok'){
-  const el=document.getElementById('notif');
-  const icons={'ok':'✦','err':'⚠','warn':'◉'};
-  el.className='show '+(type==='ok'?'':''+type);
-  document.getElementById('notifIcon').textContent = icons[type]||'✦';
-  document.getElementById('notifTxt').textContent = msg;
-  clearTimeout(_nt); _nt=setTimeout(()=>el.className='',3800);
+async function setLanguage(lang) {
+  if (!token) return;
+  await api('POST', '/api/user/language', { lang });
+  notify('Til o‘zgartirildi');
 }
-
-/* ── API ── */
-async function apiFetch(method, path, body){
-  const opts={method,headers:{'Content-Type':'application/json',...(_token?{'Authorization':'Bearer '+_token}:{})}};
-  if(body) opts.body=JSON.stringify(body);
-  const res=await fetch(path,opts);
-  if(res.status===401){doLogout();throw new Error('Sessiya tugadi')}
-  if(res.status===429) throw new Error('Juda ko\'p so\'rov. Kuting.');
-  const data=await res.json();
-  return {ok:res.ok,data,status:res.status};
-}
-
-/* ── LOGIN / LOGOUT ── */
-async function doLogin(){
-  const login=document.getElementById('loginInp').value.trim();
-  const pass=document.getElementById('passInp').value.trim();
-  if(!login||!pass) return notify('Login va parolni kiriting','err');
-  const btn=document.getElementById('loginBtn');
-  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/auth/login',{login,password:pass});
-    if(ok&&data.status==='success'){
-      _token=data.token; _uid=data.user_id; _role=data.role;
-      _premium=!!data.premium; _googleEmail=data.google_email||null;
-      sessionStorage.setItem('hs_t',_token); sessionStorage.setItem('hs_u',_uid);
-      sessionStorage.setItem('hs_r',_role); sessionStorage.setItem('hs_p',_premium?'1':'0');
-      sessionStorage.setItem('hs_l',login); sessionStorage.setItem('hs_g',_googleEmail||'');
-      notify('Tizimga kirdingiz ✦');
-      init();
-    } else notify(data.message||'Login yoki parol xato','err');
-  }catch(e){notify(e.message||'Ulanishda xatolik','err')}
-  btn.classList.remove('ld'); btn.textContent='TIZIMGA KIRISH';
-}
-
-function doLogout(){
-  sessionStorage.clear(); _token=null; _uid=null; _role=null; _premium=false; _googleEmail=null;
-  document.getElementById('adminTabBtn').style.display='none';
-  show('loginScreen'); notify('Tizimdan chiqdingiz');
-}
-
-/* ── LOAD DATA ── */
-async function loadData(){
-  try{
-    const [s,u]=await Promise.all([apiFetch('GET','/api/stats'),apiFetch('GET','/api/users')]);
-    if(s.ok){
-      const d=s.data.data;
-      document.getElementById('stTotal').textContent=d.total_accounts;
-      document.getElementById('stSucc').textContent=d.last_success;
-      document.getElementById('stLast').textContent=d.last_success+'/'+d.last_total;
-      if(typeof d.is_premium==='boolean'){
-        _premium=d.is_premium; sessionStorage.setItem('hs_p',_premium?'1':'0');
-        if(d.google_email){ _googleEmail=d.google_email; sessionStorage.setItem('hs_g',_googleEmail); }
-        updatePremBadge(d.premium_until);
-      }
+// --- dashboard load ---
+async function loadDashboard() {
+  try {
+    const stats = await api('GET', '/api/stats');
+    if (stats.status === 'success') {
+      document.getElementById('statTotal').innerText = stats.data.total_accounts;
+      document.getElementById('statSuccess').innerText = stats.data.last_success;
+      document.getElementById('statLast').innerText = `${stats.data.last_success}/${stats.data.last_total}`;
+      premium = stats.data.is_premium;
+      document.getElementById('premiumLabel').innerHTML = premium ? '⭐ PREMIUM' : '⭐ FREE';
+      document.getElementById('premiumUntil').innerText = premium && stats.data.premium_until ? `Amal qiladi: ${new Date(stats.data.premium_until).toLocaleDateString()}` : '';
     }
-    if(u.ok) renderAccs(u.data.users||[]);
-  }catch(e){notify('Ma\'lumot yuklashda xatolik','err')}
-}
-
-function updatePremBadge(untilIso){
-  const strip=document.getElementById('premStrip');
-  const badge=document.getElementById('premBadge');
-  const hint=document.getElementById('premHint');
-  if(_premium){
-    strip.className='premStrip active';
-    badge.className='badge prem'; badge.innerHTML='<span class="dot pulse" style="background:var(--em)"></span>PREMIUM';
-    hint.textContent=untilIso?`Amal qilish muddati: ${new Date(untilIso).toLocaleDateString('uz-UZ')}`:'Cheksiz premium';
-  } else {
-    strip.className='premStrip';
-    badge.className='badge free'; badge.innerHTML='<span class="dot" style="background:var(--am)"></span>FREE';
-    hint.textContent='Premium xususiyatlar faol emas';
-  }
-}
-
-/* ── PREMIUM STATUS ── */
-async function loadPremiumStatus(){
-  try{
-    const {ok,data}=await apiFetch('GET','/api/premium/status');
-    if(ok&&data.status==='success'){
-      _premium=!!data.data.is_premium;
-      sessionStorage.setItem('hs_p',_premium?'1':'0');
-      if(data.data.google_email){ _googleEmail=data.data.google_email; sessionStorage.setItem('hs_g',_googleEmail); }
-      updatePremBadge(data.data.premium_until);
-      updatePremFeatureCards();
-      updateGoogleBadge(data.data.google_email);
+    const accounts = await api('GET', '/api/users');
+    if (accounts.status === 'success') {
+      renderAccounts(accounts.users);
     }
-  }catch(e){}
+    loadHistory();
+  } catch(e) { console.error(e); }
 }
-
-function updatePremFeatureCards(){
-  const ids=['fGoogle','fSchedule','fOverlap','fPriority'];
-  ids.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){ if(_premium) el.classList.add('ok'); else el.classList.remove('ok'); }
-  });
-  const expiry=document.getElementById('premExpiry');
-  if(expiry) expiry.textContent=_premium?'✓ Barcha premium xususiyatlar faol':'Premium akkauntga o\'tish uchun kod kiriting.';
-}
-
-/* ── GOOGLE BADGE ── */
-function updateGoogleBadge(email){
-  const badge=document.getElementById('googleStatusBadge');
-  const dcBtn=document.getElementById('disconnectGoogleBtn');
-  if(!badge) return;
-  if(email){
-    badge.className='googleBadge connected';
-    badge.innerHTML=`<span class="dot pulse" style="background:var(--em)"></span><span style="font-size:12px">✓ ULANGAN</span><span class="gBadgeEmail">${esc(email)}</span>`;
-    if(dcBtn) dcBtn.style.display='inline-flex';
-  } else {
-    badge.className='googleBadge disconnected';
-    badge.innerHTML='<span>⚠</span><span>Google Calendar ulanmagan</span>';
-    if(dcBtn) dcBtn.style.display='none';
-  }
-}
-
-async function activatePremium(){
-  const code=document.getElementById('premiumCode').value.trim();
-  const btn=document.getElementById('premiumBtn');
-  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/premium/activate',{code});
-    if(ok){_premium=true;sessionStorage.setItem('hs_p','1');notify(data.message||'Premium yoqildi');loadPremiumStatus();}
-    else notify(data.message||'Kod xato','err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='PREMIUMNI YOQISH';
-}
-
-/* ── PREFS ── */
-async function loadPremiumPrefs(){
-  try{
-    const {ok,data}=await apiFetch('GET','/api/schedule/preferences');
-    if(!ok) return;
-    const p=data.data||{};
-    document.getElementById('tzName').value=p.timezone||'Asia/Tashkent';
-    document.getElementById('prefCourse').value=p.preferred_course||'';
-    document.getElementById('prefRoom').value=p.preferred_room||'';
-    document.getElementById('prefDays').value=p.preferred_days||'';
-    document.getElementById('prefTime').value=p.preferred_time_range||'';
-    document.getElementById('prefNotes').value=p.notes||'';
-    updateGoogleBadge(p.google_email||_googleEmail);
-  }catch(e){}
-}
-
-async function savePremiumPrefs(){
-  const btn=document.getElementById('prefBtn');
-  btn.classList.add('ld'); btn.textContent='SAQLANMOQDA...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/schedule/preferences',{
-      timezone:document.getElementById('tzName').value.trim()||'Asia/Tashkent',
-      preferred_course:document.getElementById('prefCourse').value.trim(),
-      preferred_room:document.getElementById('prefRoom').value.trim(),
-      preferred_days:document.getElementById('prefDays').value.trim(),
-      preferred_time_range:document.getElementById('prefTime').value.trim(),
-      notes:document.getElementById('prefNotes').value.trim(),
-    });
-    if(ok) notify(data.message||'Saqlandi'); else notify(data.message||'Xatolik','err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='SOZLAMANI SAQLASH';
-}
-
-/* ── GOOGLE ── */
-async function connectGoogleOAuth(){
-  const btn=document.getElementById('connectGoogleBtn');
-  btn.classList.add('ld'); btn.textContent='TAYORLANMOQDA...';
-  try{
-    const {ok,data}=await apiFetch('GET','/api/google/oauth/start');
-    if(ok&&data.data?.auth_url){ window.open(data.data.auth_url,'_blank'); notify('Google oynasi ochildi'); }
-    else notify(data.message||'OAuth link olinmadi','err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='🔗 OAUTH ULASH';
-}
-
-async function verifyGoogleToken(){
-  const btn=document.getElementById('verifyGoogleBtn');
-  const token=document.getElementById('googleToken').value.trim();
-  if(!token) return notify('Google token kiriting','err');
-  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/google/verify_token',{access_token:token});
-    if(ok&&data.status==='success'){
-      const email=data.data?.email;
-      if(email){ _googleEmail=email; sessionStorage.setItem('hs_g',email); updateGoogleBadge(email); }
-      notify('Google token yaroqli ✓');
-    } else notify(data.message||'Token yaroqsiz','err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='✓ TOKEN TEKSHIR';
-}
-
-async function disconnectGoogle(){
-  if(!confirm('Google ulanishni uzasizmi?')) return;
-  _googleEmail=null; sessionStorage.removeItem('hs_g');
-  updateGoogleBadge(null); notify('Google uzildi','warn');
-}
-
-async function fetchGoogleSchedule(){
-  const btn=document.getElementById('fetchScheduleBtn');
-  btn.classList.add('ld'); btn.textContent='IMPORT...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/google/schedule/fetch',{});
-    if(ok) notify(data.message||'Import qilindi'); else notify(data.message||'Xatolik','err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='📥 GOOGLE KALENDARDAN IMPORT';
-}
-
-/* ── SCHEDULE ── */
-async function buildPlan(){
-  const btn=document.getElementById('planBtn');
-  const out=document.getElementById('planOut');
-  let schedule=[];
-  try{schedule=JSON.parse(document.getElementById('scheduleInput').value||'[]')}
-  catch(e){return notify('JSON noto\'g\'ri','err')}
-  btn.classList.add('ld'); btn.textContent='TAHLIL...';
-  out.innerHTML='<div style="font-size:10px;color:var(--mute)">Qidirilmoqda...</div>';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/schedule/plan',{schedule});
-    if(ok&&data.status==='success'){
-      const rows=data.data?.suggested||[];
-      if(!rows.length) out.innerHTML=`<div style="font-size:10px;color:var(--mute)">${esc(data.data?.message||'Mos slot topilmadi')}</div>`;
-      else out.innerHTML=rows.map(r=>`<div class="planItem"><span>${esc(r.course||'-')} · ${esc(r.room||'-')}</span><span style="color:var(--mute)">${esc(r.day||'')} ${esc(r.time||'')}</span></div>`).join('');
-    } else out.innerHTML=`<div style="font-size:10px;color:var(--ro)">${esc(data?.message||'Xatolik')}</div>`;
-  }catch(e){out.innerHTML=`<div style="font-size:10px;color:var(--ro)">${esc(e.message)}</div>`}
-  btn.classList.remove('ld'); btn.textContent='MOS SLOTLAR';
-}
-
-async function uploadSchedule(){
-  const btn=document.getElementById('uploadBtn');
-  let schedule=[];
-  try{schedule=JSON.parse(document.getElementById('scheduleInput').value||'[]')}
-  catch(e){return notify('JSON noto\'g\'ri','err')}
-  btn.classList.add('ld'); btn.textContent='...';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/schedule/upload',{schedule,source:'manual'});
-    if(ok) notify(data.message||'Saqlandi'); else notify(data.message,'err');
-  }catch(e){notify(e.message,'err')}
-  btn.classList.remove('ld'); btn.textContent='SAQLASH';
-}
-
-async function checkOverlaps(){
-  const out=document.getElementById('planOut');
-  out.innerHTML='<div style="font-size:10px;color:var(--mute)">Overlap qidirilmoqda...</div>';
-  try{
-    const {ok,data}=await apiFetch('GET','/api/schedule/overlaps');
-    if(!ok){out.innerHTML=`<div style="font-size:10px;color:var(--ro)">${esc(data?.message||'Xatolik')}</div>`;return}
-    const rows=data.data||[];
-    if(!rows.length){out.innerHTML='<div style="font-size:10px;color:var(--mute)">To\'qnashuv topilmadi.</div>';return}
-    out.innerHTML=rows.slice(0,40).map(r=>`<div class="planItem"><span>${esc(r.my_day)} ${r.my_start}-${r.my_end} · ${esc(r.my_room||'-')}</span><span style="color:var(--vi)">${esc(r.other_login)}</span></div>`).join('');
-  }catch(e){out.innerHTML=`<div style="font-size:10px;color:var(--ro)">${esc(e.message)}</div>`}
-}
-
-/* ── ACCOUNTS RENDER ── */
-function renderAccs(users){
-  const el=document.getElementById('accList');
-  if(!users.length){el.innerHTML='<div class="empty">Hali akkaunt qo\'shilmagan</div>';return}
-  el.innerHTML=users.map((u,i)=>{
-    const act=u.bearer_token&&u.bearer_token!=='NO_TOKEN'&&!String(u.bearer_token).startsWith('ERROR');
-    return `<div class="accItem ${act?'active':'inactive'}" style="animation-delay:${i*.04}s">
-      <div class="accLeft">
-        <div class="accEmail">${esc(u.email)}</div>
-        <div class="accStatus ${act?'on':'off'}">
-          <div class="dot ${act?'pulse':''}"></div>
-          ${act?'AKTIV TOKEN':'NOFAOL'}
+function renderAccounts(users) {
+  const container = document.getElementById('accountsList');
+  if (!users.length) { container.innerHTML = '<div class="card">Akkauntlar mavjud emas</div>'; return; }
+  container.innerHTML = users.map(u => {
+    const isActive = u.bearer_token && u.bearer_token !== 'NO_TOKEN' && !u.bearer_token.startsWith('ERROR');
+    return `<div class="card" style="border-left:4px solid ${isActive ? '#6ee7b7' : '#f43f5e'}">
+      <div style="display:flex; justify-content:space-between;">
+        <div><strong>${escapeHtml(u.email)}</strong><br><span class="acc-status">${isActive ? '✅ Aktiv' : '❌ Nofaol'}</span></div>
+        <div>
+          <button class="btn" style="padding:4px 8px;" onclick="reloadToken(${u.id})">🔄 Yangilash</button>
+          <button class="btn" style="background:rgba(244,63,94,0.2);" onclick="deleteAccount(${u.id})">🗑 O‘chirish</button>
         </div>
-      </div>
-      <div class="accActions">
-        ${act?'':'<button class="btnS" style="font-size:9px;padding:5px 8px" onclick="reloadToken('+u.id+')">↻ TOKEN</button>'}
-        <button class="btnD" onclick="delAcc(${u.id})">✕</button>
       </div>
     </div>`;
   }).join('');
 }
-
-/* ── CRUD ── */
-async function addAcc(){
-  const email=document.getElementById('newEmail').value.trim();
-  const pass=document.getElementById('newPass').value.trim();
-  const msg=document.getElementById('addMsg');
-  if(!email||!pass) return notify('Maydonlarni to\'ldiring','err');
-  if(!email.includes('@')) return notify('Email to\'g\'ri emas','err');
-  const btn=document.getElementById('addBtn');
-  btn.classList.add('ld'); btn.textContent='TEKSHIRILMOQDA...';
-  msg.textContent='Hero tizimida tekshirilmoqda...';msg.style.color='var(--mute)';
-  try{
-    const {ok,data}=await apiFetch('POST','/api/users/add',{email,password:pass});
-    if(ok){
-      const isAct=data.active;
-      msg.textContent=data.message;
-      msg.style.color=isAct?'var(--em)':'var(--am)';
-      if(isAct){document.getElementById('newEmail').value='';document.getElementById('newPass').value='';}
-      loadData();
-    } else {msg.textContent=data.message||'Xatolik';msg.style.color='var(--ro)'}
-  }catch(e){msg.textContent=e.message;msg.style.color='var(--ro)'}
-  btn.classList.remove('ld'); btn.textContent="RO'YXATGA QO'SHISH";
+async function reloadToken(id) {
+  const res = await api('POST', '/api/users/reload', { account_id: id });
+  notify(res.message || (res.status === 'success' ? 'Token yangilandi' : 'Xatolik'), res.status !== 'success');
+  loadDashboard();
 }
-
-async function delAcc(id){
-  if(!confirm('Akkauntni o\'chirishni tasdiqlaysizmi?')) return;
-  try{
-    const {ok}=await apiFetch('POST','/api/users/delete',{account_id:id});
-    if(ok){notify('Akkaunt o\'chirildi');loadData();}
-    else notify('O\'chirishda xatolik','err');
-  }catch(e){notify('O\'chirishda xatolik','err')}
+async function deleteAccount(id) {
+  if (!confirm('O‘chirishni tasdiqlaysizmi?')) return;
+  await api('POST', '/api/users/delete', { account_id: id });
+  loadDashboard();
 }
-
-async function reloadToken(id){
-  notify('Token yangilanmoqda...');
-  try{
-    const {ok,data}=await apiFetch('POST','/api/users/reload',{account_id:id});
-    if(ok) {notify(data.message||'Token yangilandi');loadData();}
-    else notify(data.message||'Xatolik','err');
-  }catch(e){notify(e.message,'err')}
+async function addAccount() {
+  const email = document.getElementById('newEmail').value.trim();
+  const pass = document.getElementById('newPass').value.trim();
+  if (!email.endsWith('@newuu.uz')) return notify('Faqat @newuu.uz pochtasi ruxsat etiladi', true);
+  const res = await api('POST', '/api/users/add', { email, password: pass });
+  document.getElementById('addMsg').innerHTML = res.message;
+  if (res.status === 'success') { document.getElementById('newEmail').value = ''; document.getElementById('newPass').value = ''; loadDashboard(); }
 }
-
-/* ── HISTORY ── */
-async function loadHistory(){
-  const el=document.getElementById('histList');
-  el.innerHTML='<div class="empty">Yuklanmoqda...</div>';
-  try{
-    const {ok,data}=await apiFetch('GET','/api/history');
-    if(ok&&data.logs&&data.logs.length){
-      el.innerHTML=data.logs.map(l=>{
-        const rate=l.total_count>0?Math.round(l.success_count/l.total_count*100):0;
-        const color=rate===100?'var(--em)':rate>50?'var(--vi)':'var(--ro)';
-        const dt=l.scanned_at?new Date(l.scanned_at).toLocaleString('uz-UZ'):'—';
-        return `<div class="histItem">
-          <div class="histTime">${dt}</div>
-          <div class="histRes">
-            <div style="font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:${color}">${l.success_count}/${l.total_count}</div>
-            <div class="histBar"><div class="histBarFill" style="width:${rate}%;background:${color}"></div></div>
-            <div style="font-size:9.5px;color:var(--mute);white-space:nowrap">${(l.duration||0).toFixed(1)}s · ${rate}%</div>
-          </div>
-        </div>`;
-      }).join('');
-    } else el.innerHTML='<div class="empty">Tarix mavjud emas</div>';
-  }catch(e){el.innerHTML='<div class="empty">Yuklashda xatolik</div>'}
+async function loadHistory() {
+  const res = await api('GET', '/api/history');
+  if (res.status === 'success' && res.logs) {
+    const logs = res.logs.slice(0, 20);
+    document.getElementById('historyList').innerHTML = logs.map(l => `
+      <div style="border-bottom:1px solid var(--border); padding: 8px 0;">
+        ${new Date(l.scanned_at).toLocaleString()} — ${l.success_count}/${l.total_count} (${l.duration}s)
+      </div>
+    `).join('') || 'Hech qanday skan yo‘q';
+    // chart
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    const rates = logs.map(l => (l.success_count / (l.total_count || 1)) * 100);
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'line', data: { labels: logs.map((_,i)=>i+1), datasets: [{ label: 'Muvaffaqiyat %', data: rates, borderColor: '#6ee7b7' }] }
+    });
+  }
 }
-
-/* ── SCAN ── */
-function startScan(){
-  if(tg&&tg.showScanQrPopup){
-    tg.showScanQrPopup({text:'Hero davomat QR kodini skanerlang'},async url=>{
-      if(!url) return false;
-      tg.closeScanQrPopup(); await execScan(url); return true;
+// --- premium functions ---
+async function activatePremiumCode() {
+  const code = document.getElementById('premiumCode').value.trim();
+  const res = await api('POST', '/api/premium/activate', { code });
+  notify(res.message, res.status !== 'success');
+  if (res.status === 'success') loadDashboard();
+}
+async function startGoogleOAuth() {
+  const res = await api('GET', '/api/google/oauth/start');
+  if (res.data && res.data.auth_url) window.open(res.data.auth_url, '_blank');
+  else notify('Google OAuth sozlanmagan', true);
+}
+async function disconnectGoogle() {
+  await api('POST', '/api/google/disconnect', {});
+  notify('Google uzildi');
+  loadDashboard();
+}
+async function fetchGoogleSchedule() {
+  const res = await api('POST', '/api/google/schedule/fetch', {});
+  notify(res.message || 'Import qilindi', res.status !== 'success');
+}
+async function checkOverlaps() {
+  const res = await api('GET', '/api/schedule/overlaps');
+  if (res.data && res.data.length) {
+    notify(`${res.data.length} ta overlap topildi`, false);
+  } else notify('Overlap yo‘q', false);
+}
+async function savePreferences() {
+  const payload = {
+    preferred_course: document.getElementById('prefCourse').value,
+    preferred_room: document.getElementById('prefRoom').value,
+    preferred_days: document.getElementById('prefDays').value,
+    preferred_time_range: document.getElementById('prefTime').value,
+    notes: document.getElementById('prefNotes').value,
+  };
+  const res = await api('POST', '/api/schedule/preferences', payload);
+  notify(res.message || 'Saqlandi');
+}
+// --- scan ---
+function startScan() {
+  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.showScanQrPopup) {
+    Telegram.WebApp.showScanQrPopup({ text: 'Hero QR kodni skanerlang' }, async (url) => {
+      if (!url) return;
+      Telegram.WebApp.closeScanQrPopup();
+      await performScan(url);
     });
   } else {
-    const url=prompt('QR URL manzilini kiriting:');
-    if(url) execScan(url);
+    const url = prompt('QR kod URL manzilini kiriting:');
+    if (url) performScan(url);
   }
 }
-
-async function execScan(url){
-  const btn=document.getElementById('scanBtn');
-  btn.classList.add('scanning');
-  btn.innerHTML='<div class="spin"></div> SKANLANMOQDA...';
-  notify('Davomat yuborilmoqda...');
-  try{
-    const {ok,data}=await apiFetch('POST','/api/scan',{url});
-    if(ok&&data.status==='success'){showResult(data);loadData();}
-    else notify(data.message||'Skan xatoligi','err');
-  }catch(e){notify(e.message||'Ulanishda xatolik','err')}
-  btn.classList.remove('scanning');
-  btn.innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>
-    <line x1="2" y1="12" x2="22" y2="12" opacity=".3"/><line x1="12" y1="2" x2="12" y2="22" opacity=".3"/>
-  </svg>DAVOMATGA KIRITISH`;
-}
-
-function showResult(data){
-  const failed=data.total-data.success;
-  document.getElementById('rSummary').innerHTML=`
-    <div class="rBox"><div class="rNum g">${data.success}</div><div class="rLbl">MUVAFFAQ</div></div>
-    <div class="rBox"><div class="rNum r">${failed}</div><div class="rLbl">XATO</div></div>
-    <div class="rBox"><div class="rNum b">${(data.duration||0).toFixed(1)}s</div><div class="rLbl">VAQT</div></div>`;
-  document.getElementById('rList').innerHTML=(data.report||[]).map(r=>`
-    <div class="rItem">
-      <span class="${r.ok?'rOk':'rFail'}">${r.ok?'✓':'✗'}</span>
-      <span class="rEmail">${esc(r.email)}</span>
-      ${!r.ok&&r.reason?`<span style="font-size:9px;color:var(--mute)">${esc(r.reason)}</span>`:''}
-    </div>`).join('');
-  document.getElementById('modal').classList.add('on');
-}
-function closeModal(){document.getElementById('modal').classList.remove('on')}
-
-/* ── ADMIN ── */
-async function loadAdmin(){
-  try{
-    const {ok,data}=await apiFetch('GET','/api/admin/all_data');
-    if(!ok) return notify('Ruxsat yo\'q','err');
-    const d=data.data;
-    const s=d.stats||{};
-    document.getElementById('aTotalUsers').textContent=s.total_users||'0';
-    document.getElementById('aTotalPrem').textContent=s.total_premium||'0';
-    document.getElementById('aTotalHero').textContent=s.total_heroes||'0';
-    document.getElementById('aTodayScans').textContent=s.today_scans||'0';
-
-    // Users
-    document.getElementById('adminUsers').innerHTML=(d.users||[]).map(u=>{
-      const isPrem=u.is_premium&&(u.premium_until?new Date(u.premium_until)>new Date():true);
-      const until=u.premium_until?new Date(u.premium_until).toLocaleDateString('uz-UZ'):'—';
-      return `<tr>
-        <td style="color:var(--em)">${esc(u.login)}</td>
-        <td style="color:var(--mute)">${u.telegram_id||'—'}</td>
-        <td style="text-align:center;font-family:'Orbitron',monospace;color:var(--vi)">${u.hero_count||0}</td>
-        <td>
-          <span class="premToggle ${isPrem?'on':'off'}"
-            onclick="adminTogglePremium(${u.id},${isPrem},'${esc(u.login)}')"
-            title="${isPrem?'Tugash: '+until:'Premium emas'}">
-            ${isPrem?'★ PREM':'○ FREE'}
-          </span>
-        </td>
-        <td>
-          <button class="btnA" style="font-size:9px;padding:4px 9px" onclick="adminGivePremium(${u.id})">+30k</button>
-        </td>
-      </tr>`;
-    }).join('')||'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--mute)">Ma\'lumot yo\'q</td></tr>';
-
-    // Accounts
-    document.getElementById('adminAccs').innerHTML=(d.accounts||[]).map(a=>{
-      const act=a.bearer_token&&a.bearer_token!=='NO_TOKEN'&&!String(a.bearer_token).startsWith('ERROR');
-      return `<tr>
-        <td style="color:var(--mute)">${esc(a.tg_login)}</td>
-        <td>${esc(a.email)}</td>
-        <td><span style="color:${act?'var(--em)':'var(--ro)'}">${act?'● AKTIV':'○ NOFAOL'}</span></td>
-      </tr>`;
-    }).join('')||'<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--mute)">Ma\'lumot yo\'q</td></tr>';
-
-    // Logs
-    document.getElementById('adminLogs').innerHTML=(d.logs||[]).map(l=>{
-      const rate=l.total_count>0?Math.round(l.success_count/l.total_count*100):0;
-      const col=rate===100?'var(--em)':rate>50?'var(--vi)':'var(--ro)';
-      const dt=l.scanned_at?new Date(l.scanned_at).toLocaleString('uz-UZ'):'—';
-      return `<tr>
-        <td style="color:var(--mute)">${esc(l.login)}</td>
-        <td style="color:${col};font-family:'Orbitron',monospace">${l.success_count}/${l.total_count} <span style="font-size:9px;color:var(--mute)">(${rate}%)</span></td>
-        <td style="color:var(--mute)">${(l.duration||0).toFixed(1)}s</td>
-        <td style="font-size:9px;color:var(--mute)">${dt}</td>
-      </tr>`;
-    }).join('')||'<tr><td colspan="4" style="text-align:center;padding:14px;color:var(--mute)">Log yo\'q</td></tr>';
-
-  }catch(e){notify('Xatolik: '+e.message,'err')}
-}
-
-async function adminTogglePremium(userId, isPrem, login){
-  if(isPrem){
-    if(!confirm(`${login} dan premiumni olasizmi?`)) return;
-    try{
-      const {ok,data}=await apiFetch('POST','/api/admin/premium',{user_id:userId,action:'deactivate'});
-      if(ok) {notify(data.message);loadAdmin();} else notify(data.message,'err');
-    }catch(e){notify(e.message,'err')}
+async function performScan(url) {
+  notify('Skaner ishga tushdi...');
+  const res = await api('POST', '/api/scan', { url });
+  if (res.status === 'success') {
+    showResultModal(res);
+    loadDashboard();
   } else {
-    await adminGivePremium(userId);
+    notify(res.message || 'Xatolik', true);
   }
 }
-
-async function adminGivePremium(userId){
-  const days=prompt('Necha kun premium berish? (1-365):','30');
-  if(!days) return;
-  const d=parseInt(days);
-  if(isNaN(d)||d<1||d>365) return notify('Kun soni noto\'g\'ri (1-365)','err');
-  try{
-    const {ok,data}=await apiFetch('POST','/api/admin/premium',{user_id:userId,action:'activate',days:d});
-    if(ok) {notify(data.message);loadAdmin();} else notify(data.message,'err');
-  }catch(e){notify(e.message,'err')}
+function showResultModal(data) {
+  document.getElementById('modalStats').innerHTML = `
+    <div class="card" style="flex:1; text-align:center"><div>✅ Muvaffaq</div><div style="font-size:32px;">${data.success}</div></div>
+    <div class="card" style="flex:1; text-align:center"><div>❌ Xato</div><div style="font-size:32px;">${data.total - data.success}</div></div>
+    <div class="card" style="flex:1; text-align:center"><div>⏱ Vaqt</div><div>${data.duration}s</div></div>
+  `;
+  document.getElementById('modalReport').innerHTML = (data.report || []).map(r => `<div>${r.ok ? '✅' : '❌'} ${r.email} ${r.reason ? '('+r.reason+')' : ''}</div>`).join('');
+  document.getElementById('resultModal').classList.add('active');
 }
-
-async function adminExportCSV(){
-  try{
-    const res=await fetch('/api/admin/export',{headers:{Authorization:'Bearer '+_token}});
-    if(res.status!==200){notify('Export xatoligi','err');return}
-    const blob=await res.blob();
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='HeroScanner_Export.csv';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    notify('CSV yuklab olinmoqda...');
-  }catch(e){notify(e.message,'err')}
+function closeModal() {
+  document.getElementById('resultModal').classList.remove('active');
 }
-
-/* ── UTILS ── */
-function esc(s){
-  if(!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// --- admin ---
+async function showAdmin() {
+  document.getElementById('dashboardScreen').classList.remove('active');
+  document.getElementById('adminScreen').classList.add('active');
+  const data = await api('GET', '/api/admin/all_data');
+  if (data.status === 'success') {
+    const s = data.data.stats;
+    document.getElementById('adminStats').innerHTML = `
+      <div class="card">👥 Foydalanuvchilar: ${s.total_users}</div>
+      <div class="card">⭐ Premium: ${s.total_premium}</div>
+      <div class="card">🔐 Hero akkauntlar: ${s.total_heroes}</div>
+      <div class="card">📡 Bugungi skan: ${s.today_scans}</div>
+    `;
+    const usersHtml = data.data.users.map(u => `<tr><td>${u.login}</td><td>${u.hero_count}</td><td><button class="btn" onclick="togglePremium(${u.id}, ${!u.is_premium})">${u.is_premium ? '❌ Bekor qilish' : '⭐ Premium berish'}</button></td></tr>`).join('');
+    document.getElementById('adminUsersTable').innerHTML = `<thead><tr><th>Login</th><th>Hero soni</th><th>Amal</th></tr></thead><tbody>${usersHtml}</tbody>`;
+    const accHtml = data.data.accounts.map(a => `<tr><td>${a.tg_login}</td><td>${a.email}</td><td>${a.bearer_token === 'NO_TOKEN' ? 'Nofaol' : 'Aktiv'}</td></tr>`).join('');
+    document.getElementById('adminAccountsTable').innerHTML = `<thead><tr><th>Foydalanuvchi</th><th>Email</th><th>Holat</th></tr></thead><tbody>${accHtml}</tbody>`;
+  }
 }
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.getElementById('loginScreen').classList.contains('on')) doLogin();
-  if(e.key==='Escape') closeModal();
+async function togglePremium(userId, enable) {
+  const action = enable ? 'activate' : 'deactivate';
+  const days = prompt('Necha kun? (1-365)', '30');
+  if (!days) return;
+  const res = await api('POST', '/api/admin/premium', { user_id: userId, action, days: parseInt(days) });
+  notify(res.message, res.status !== 'success');
+  showAdmin();
+}
+async function exportCSV() {
+  window.open('/api/admin/export', '_blank');
+}
+function backToDashboard() {
+  document.getElementById('adminScreen').classList.remove('active');
+  document.getElementById('dashboardScreen').classList.add('active');
+  loadDashboard();
+}
+// --- tab switching ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+    tab.classList.add('active');
+    const id = tab.getAttribute('data-tab');
+    document.getElementById(id).style.display = 'block';
+    if (id === 'historyTab') loadHistory();
+    if (id === 'premiumTab') loadDashboard();
+  });
 });
-
-init();
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+// init
+if (token && userId) {
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('dashboardScreen').classList.add('active');
+  if (role === 'super_admin') document.getElementById('adminBtn').style.display = 'inline-block';
+  loadDashboard();
+} else {
+  document.getElementById('loginScreen').classList.add('active');
+}
 </script>
 </body>
 </html>
