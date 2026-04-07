@@ -21,23 +21,21 @@ from aiogram.types import (
 import database as db
 import hero_api as api
 
-# ─── LOGGING ──────────────────────────────────────────────────────────────────
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# ─── CONFIG ───────────────────────────────────────────────────────────────────
-
+# ─── ENV ──────────────────────────────────────────────────────────────────────
 BOT_TOKEN   = os.getenv("BOT_TOKEN")
 ADMIN_ID    = int(os.getenv("ADMIN_ID", 0))
 raw_url     = os.getenv("WEBAPP_URL", "").rstrip("/")
 WEBAPP_URL  = f"https://{raw_url.replace('https://','').replace('http://','')}" if raw_url else ""
 PORT        = int(os.getenv("PORT", 8080))
-JWT_SECRET  = os.getenv("JWT_SECRET", "change-me-in-production")
-JWT_EXPIRE_HOURS = 24
+JWT_SECRET  = os.getenv("JWT_SECRET")
+if not JWT_SECRET or JWT_SECRET == "change-me-in-production":
+    raise ValueError("JWT_SECRET must be set and strong!")
 PREMIUM_CODE = os.getenv("PREMIUM_ACTIVATION_CODE", "")
 GOOGLE_CLIENT_ID     = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
@@ -50,11 +48,10 @@ bot = Bot(token=BOT_TOKEN) if BOT_TOKEN else None
 dp  = Dispatcher()
 
 # ─── JWT ──────────────────────────────────────────────────────────────────────
-
 def create_token(user_id: int, telegram_id: int, role: str) -> str:
     payload = {
         "user_id": user_id, "telegram_id": telegram_id, "role": role,
-        "exp": datetime.now(tz=timezone.utc) + timedelta(hours=JWT_EXPIRE_HOURS),
+        "exp": datetime.now(tz=timezone.utc) + timedelta(hours=24),
         "iat": datetime.now(tz=timezone.utc),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
@@ -66,7 +63,6 @@ def decode_token(token: str):
         return None
 
 # ─── RATE LIMITER ─────────────────────────────────────────────────────────────
-
 _rate_store: dict[str, list] = defaultdict(list)
 
 def is_rate_limited(key: str, max_req: int = 5, window_sec: int = 60) -> bool:
@@ -78,9 +74,7 @@ def is_rate_limited(key: str, max_req: int = 5, window_sec: int = 60) -> bool:
     return False
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
-
 EMAIL_RE = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
-
 def validate_email(email: str) -> bool:
     return bool(email and EMAIL_RE.match(email) and len(email) <= 200)
 
@@ -199,11 +193,12 @@ async def refresh_google_access_token(profile: dict):
     except Exception as e:
         return None, str(e)
 
-# FROM OLD BOT: Verify hero.study account credentials
+# ─── CORRECTED HERO VERIFICATION ──────────────────────────────────────────────
 async def verify_hero_account(email: str, password: str):
     try:
         async with aiohttp.ClientSession() as session:
-            payload = {"email": email, "pass": password, "remember": "", "clientToken": ""}
+            # CRITICAL FIX: "password" not "pass"
+            payload = {"email": email, "password": password, "remember": "", "clientToken": ""}
             async with session.post(
                 HERO_LOGIN_URL, json=payload, ssl=False,
                 timeout=aiohttp.ClientTimeout(total=15)
@@ -218,11 +213,10 @@ async def verify_hero_account(email: str, password: str):
                     if token:
                         return True, token
                 return False, f"Hero tizimi status: {resp.status}"
-    except Exception:
+    except Exception as e:
         return False, "Hero serveriga ulanib bo'lmadi"
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
-
 PUBLIC_PATHS = {"/", "/health", "/api/auth/login", "/api/google/oauth/callback"}
 
 @web.middleware
@@ -250,7 +244,6 @@ async def security_headers_middleware(request: web.Request, handler):
     return resp
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
-
 async def auth_login(request: web.Request):
     ip = get_client_ip(request)
     if is_rate_limited(f"login:{ip}", max_req=10, window_sec=60):
@@ -280,14 +273,12 @@ async def auth_login(request: web.Request):
     })
 
 # ─── USERS / ACCOUNTS ─────────────────────────────────────────────────────────
-
 async def get_users_list(request: web.Request):
     user = request["user"]
     rows = await db.get_hero_accounts(user["user_id"])
     return web.json_response({"status": "success", "users": [dict(r) for r in rows]})
 
 async def add_user(request: web.Request):
-    """IMPROVED: Verifies account against hero.study before saving (from old bot)."""
     user = request["user"]
     try:
         data = await request.json()
@@ -299,6 +290,9 @@ async def add_user(request: web.Request):
 
     if not validate_email(email):
         return web.json_response({"status": "error", "message": "Email manzil noto'g'ri"}, status=400)
+    # Enforce @newuu.uz domain (optional but recommended)
+    if not email.endswith("@newuu.uz"):
+        return web.json_response({"status": "error", "message": "Faqat @newuu.uz pochtasi qabul qilinadi!"}, status=400)
     if not password:
         return web.json_response({"status": "error", "message": "Parol kiritilmagan"}, status=400)
 
@@ -311,7 +305,6 @@ async def add_user(request: web.Request):
         return web.json_response({"status": "success", "message": f"Akkaunt saqlandi lekin nofaol. Sabab: {result}", "active": False})
 
 async def edit_user(request: web.Request):
-    """FROM OLD BOT: Edit hero account and re-verify."""
     user = request["user"]
     try:
         data = await request.json()
@@ -324,6 +317,8 @@ async def edit_user(request: web.Request):
 
     if not validate_email(email):
         return web.json_response({"status": "error", "message": "Email noto'g'ri"}, status=400)
+    if not email.endswith("@newuu.uz"):
+        return web.json_response({"status": "error", "message": "Faqat @newuu.uz pochtasi qabul qilinadi!"}, status=400)
     if not acc_id:
         return web.json_response({"status": "error", "message": "account_id kerak"}, status=400)
 
@@ -338,7 +333,6 @@ async def edit_user(request: web.Request):
     return web.json_response({"status": "success", "message": msg, "active": is_valid})
 
 async def reload_user_token(request: web.Request):
-    """FROM OLD BOT: Re-verify single account and update token."""
     user = request["user"]
     try:
         data  = await request.json()
@@ -382,13 +376,11 @@ async def get_stats(request: web.Request):
     return web.json_response({"status": "success", "data": stats})
 
 async def get_history(request: web.Request):
-    """BUG FIX: Was calling non-existent function. Now uses get_user_scan_history."""
     user = request["user"]
     logs = await db.get_user_scan_history(user["user_id"], limit=30)
     return web.json_response({"status": "success", "logs": logs})
 
 # ─── SCAN ─────────────────────────────────────────────────────────────────────
-
 async def do_scan(request: web.Request):
     user    = request["user"]
     user_id = user["user_id"]
@@ -422,7 +414,7 @@ async def do_scan(request: web.Request):
     )
     await db.save_detailed_scan(user_id, success, total, duration, report)
 
-    # Telegram notification (from old bot)
+    # Telegram notification
     if bot and success > 0:
         try:
             tg_id = await db.get_telegram_id(user_id)
@@ -443,7 +435,6 @@ async def do_scan(request: web.Request):
     })
 
 # ─── PREMIUM ──────────────────────────────────────────────────────────────────
-
 async def get_premium_status(request: web.Request):
     user    = request["user"]
     profile = await db.get_user_profile(user["user_id"])
@@ -454,6 +445,7 @@ async def get_premium_status(request: web.Request):
             "premium_until": profile.get("premium_until").isoformat() if profile and profile.get("premium_until") else None,
             "google_email": profile.get("google_email") if profile else None,
             "timezone": profile.get("timezone") if profile else "Asia/Tashkent",
+            "language": profile.get("language") if profile else "uz",
         }
     })
 
@@ -477,8 +469,19 @@ async def activate_premium(request: web.Request):
     await db.activate_premium(user["user_id"], days=days)
     return web.json_response({"status": "success", "message": f"✓ Premium {days} kunga yoqildi!"})
 
-# ─── GOOGLE ───────────────────────────────────────────────────────────────────
+async def set_language(request: web.Request):
+    user = request["user"]
+    try:
+        data = await request.json()
+        lang = str(data.get("lang", "uz")).strip().lower()[:8]
+        if lang not in ("uz", "ru", "en"):
+            lang = "uz"
+        await db.set_user_language(user["user_id"], lang)
+        return web.json_response({"status": "success", "message": f"Til {lang} ga o'rnatildi"})
+    except Exception:
+        return web.json_response({"status": "error", "message": "Xatolik"}, status=400)
 
+# ─── GOOGLE ───────────────────────────────────────────────────────────────────
 async def verify_google_token(request: web.Request):
     user    = request["user"]
     profile = await db.get_user_profile(user["user_id"])
@@ -586,6 +589,11 @@ async def google_oauth_callback(request: web.Request):
     except Exception as e:
         return web.Response(text=f"Google callback xatoligi: {e}", status=500)
 
+async def google_disconnect(request: web.Request):
+    user = request["user"]
+    await db.clear_google_tokens(user["user_id"])
+    return web.json_response({"status": "success", "message": "Google ulanish uzildi"})
+
 async def fetch_google_schedule(request: web.Request):
     user    = request["user"]
     profile = await db.get_user_profile(user["user_id"])
@@ -636,7 +644,6 @@ async def fetch_google_schedule(request: web.Request):
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 # ─── SCHEDULE ─────────────────────────────────────────────────────────────────
-
 async def get_schedule_preferences(request: web.Request):
     user    = request["user"]
     profile = await db.get_user_profile(user["user_id"])
@@ -749,7 +756,6 @@ async def get_schedule_overlaps(request: web.Request):
     return web.json_response({"status": "success", "data": rows, "count": len(rows)})
 
 # ─── ADMIN ────────────────────────────────────────────────────────────────────
-
 async def get_admin_all_data(request: web.Request):
     user = request["user"]
     if user.get("role") != "super_admin":
@@ -758,7 +764,6 @@ async def get_admin_all_data(request: web.Request):
     return web.json_response({"status": "success", "data": data})
 
 async def admin_set_premium(request: web.Request):
-    """ADMIN: Toggle premium for any user."""
     user = request["user"]
     if user.get("role") != "super_admin":
         return web.json_response({"status": "error", "message": "Ruxsat yo'q"}, status=403)
@@ -766,7 +771,7 @@ async def admin_set_premium(request: web.Request):
         data      = await request.json()
         target_id = int(data.get("user_id", 0))
         days      = int(data.get("days", 30) or 30)
-        action    = str(data.get("action", "activate"))  # "activate" | "deactivate"
+        action    = str(data.get("action", "activate"))
     except Exception:
         return web.json_response({"status": "error", "message": "Noto'g'ri so'rov"}, status=400)
 
@@ -779,7 +784,6 @@ async def admin_set_premium(request: web.Request):
         return web.json_response({"status": "success", "message": f"Premium {days} kunga berildi ✓"})
 
 async def admin_export_csv(request: web.Request):
-    """ADMIN: Export all accounts to CSV."""
     user = request["user"]
     if user.get("role") != "super_admin":
         return web.Response(status=403)
@@ -802,7 +806,6 @@ async def admin_export_csv(request: web.Request):
     )
 
 # ─── STATIC ───────────────────────────────────────────────────────────────────
-
 async def index(request: web.Request):
     if os.path.exists("scanner.html"):
         return web.FileResponse("scanner.html")
@@ -812,7 +815,6 @@ async def health_check(request: web.Request):
     return web.Response(text="OK", status=200)
 
 # ─── TELEGRAM BOT ─────────────────────────────────────────────────────────────
-
 if bot:
     @dp.message(Command("start"))
     async def cmd_start(m: Message):
@@ -841,7 +843,6 @@ if bot:
         )
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
-
 async def main():
     app = web.Application(middlewares=[security_headers_middleware, auth_middleware])
 
@@ -858,9 +859,11 @@ async def main():
     app.router.add_post("/api/scan",                do_scan)
     app.router.add_get("/api/premium/status",       get_premium_status)
     app.router.add_post("/api/premium/activate",    activate_premium)
+    app.router.add_post("/api/user/language",       set_language)
     app.router.add_post("/api/google/verify_token", verify_google_token)
     app.router.add_get("/api/google/oauth/start",   start_google_oauth)
     app.router.add_get("/api/google/oauth/callback",google_oauth_callback)
+    app.router.add_post("/api/google/disconnect",   google_disconnect)
     app.router.add_post("/api/google/schedule/fetch",fetch_google_schedule)
     app.router.add_get("/api/schedule/preferences", get_schedule_preferences)
     app.router.add_post("/api/schedule/preferences",save_schedule_preferences)
